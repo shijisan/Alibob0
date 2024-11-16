@@ -36,6 +36,7 @@ model Seller {
   shopDescription String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  products        Product[] @relation("SellerToProducts") // Define the relation here
 }
 
 model Admin {
@@ -49,14 +50,14 @@ model Admin {
 model Product {
   id          String   @id @default(uuid())
   sellerId    String
-  seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  seller      Seller   @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade) // Inverse relation
   name        String
   description String
   price       Float
+  imageUrl    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
 
 enum Role {
   BUYER

@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({ name: "", description: "", price: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    image: null,
+  });
   const [error, setError] = useState("");
-  const [editMode, setEditMode] = useState(false); // Track if in edit mode
-  const [editProductId, setEditProductId] = useState(null); // Track product to be edited
+  const [editMode, setEditMode] = useState(false); // To track if the modal is in edit mode
+  const [editProductId, setEditProductId] = useState(null); // To store the product being edited
+  const [isModalOpen, setIsModalOpen] = useState(false); // Track modal visibility
 
-  // Fetch products when the component mounts
   const fetchProducts = async () => {
     try {
       const res = await fetch("/api/seller/products", {
@@ -32,60 +37,86 @@ export default function ProductsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure price is a valid float
-    const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
+    const { name, description, price, image } = formData;
+    if (!name || !description || !price || !image) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    const parsedPrice = parseFloat(price);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
       setError("Please enter a valid price.");
       return;
+    }
+
+    let imageUrl = "";
+    if (image) {
+      const formDataForCloudinary = new FormData();
+      formDataForCloudinary.append("file", image);
+      formDataForCloudinary.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+
+      try {
+        const cloudinaryRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formDataForCloudinary,
+          }
+        );
+
+        const cloudinaryData = await cloudinaryRes.json();
+        if (cloudinaryData.error) {
+          throw new Error(cloudinaryData.error.message);
+        }
+
+        imageUrl = cloudinaryData.secure_url;
+      } catch (error) {
+        setError("Failed to upload image.");
+        return;
+      }
     }
 
     const url = editMode ? `/api/seller/products/${editProductId}` : "/api/seller/products";
     const method = editMode ? "PATCH" : "POST";
 
     try {
+      const formDataForServer = new FormData();
+      formDataForServer.append("name", name);
+      formDataForServer.append("description", description);
+      formDataForServer.append("price", parsedPrice);
+      formDataForServer.append("image", image ? imageUrl : "");
+
       const res = await fetch(url, {
-        method: method,
+        method,
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          price: price, // Send the price as a float
-        }),
+        body: formDataForServer,
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error("API Error:", errorData);  // Log the error response for debugging
         throw new Error(editMode ? "Failed to update product" : "Failed to add product");
       }
 
-      const responseData = await res.json();
-      console.log("Response data:", responseData);
-
-      setFormData({ name: "", description: "", price: "" });
+      setFormData({ name: "", description: "", price: "", image: null });
       setEditMode(false);
       setEditProductId(null);
+      setIsModalOpen(false); // Close modal after submission
       fetchProducts();
     } catch (error) {
-      console.error("Error:", error);
       setError(error.message);
     }
   };
 
-  // Fill the form with product data for editing
   const editProduct = (product) => {
-    setFormData({ name: product.name, description: product.description, price: product.price });
+    setFormData({ name: product.name, description: product.description, price: product.price, image: null });
     setEditMode(true);
     setEditProductId(product.id);
+    setIsModalOpen(true); // Open modal for editing
   };
 
-  // Delete product by ID
   const deleteProduct = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this product?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {
       const res = await fetch(`/api/seller/products/${id}`, {
@@ -105,7 +136,17 @@ export default function ProductsPage() {
     }
   };
 
-  // Fetch products when the component mounts
+  const openAddProductModal = () => {
+    setEditMode(false); // Set to add mode
+    setFormData({ name: "", description: "", price: "", image: null }); // Reset form
+    setIsModalOpen(true); // Open the modal for adding
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false); // Close the modal
+    setFormData({ name: "", description: "", price: "", image: null }); // Optionally reset form data
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -113,66 +154,88 @@ export default function ProductsPage() {
   return (
     <div className="p-6">
       <h1 className="mb-4 text-2xl font-bold">Your Products</h1>
-
       {error && <p className="text-red-500">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <input
-            type="text"
-            placeholder="Product Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Product Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Price"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            className="p-2 border rounded"
-            required
-          />
+      {/* Modal Logic */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+            <h2 className="text-xl font-bold">{editMode ? "Edit Product" : "Add Product"}</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  placeholder="Product Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="p-2 border rounded"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Product Description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="p-2 border rounded"
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Price"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="p-2 border rounded"
+                  required
+                />
+                <input
+                  type="file"
+                  onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                  className="p-2 border rounded"
+                  required
+                />
+              </div>
+              <button type="submit" className="px-4 py-2 mt-4 text-white bg-blue-600 rounded">
+                {editMode ? "Update Product" : "Add Product"}
+              </button>
+            </form>
+            <button
+              onClick={closeModal}
+              className="mt-2 text-red-500"
+            >
+              Close
+            </button>
+          </div>
         </div>
-        <button type="submit" className="p-2 mt-4 text-white bg-blue-500 rounded">
-          {editMode ? "Update Product" : "Add Product"}
-        </button>
-      </form>
+      )}
 
-      <table className="w-full border table-auto">
+      <h2 className="mb-4 text-xl">Your Product List</h2>
+      <table className="min-w-full border-collapse">
         <thead>
-          <tr className="bg-gray-200">
-            <th className="px-4 py-2 border">Name</th>
-            <th className="px-4 py-2 border">Description</th>
-            <th className="px-4 py-2 border">Price</th>
-            <th className="px-4 py-2 border">Actions</th>
+          <tr>
+            <th className="p-2 text-left border-b">Image</th>
+            <th className="p-2 text-left border-b">Product Name</th>
+            <th className="p-2 text-left border-b">Price</th>
+            <th className="p-2 text-left border-b">Actions</th>
           </tr>
         </thead>
         <tbody>
           {products.map((product) => (
             <tr key={product.id}>
-              <td className="px-4 py-2 border">{product.name}</td>
-              <td className="px-4 py-2 border">{product.description}</td>
-              <td className="px-4 py-2 border">${product.price.toFixed(2)}</td>
-              <td className="px-4 py-2 border">
+              <td className="p-2 border-b">
+                <img src={product.imageUrl} alt={product.name} className="object-cover w-16 h-16" />
+              </td>
+              <td className="p-2 border-b">{product.name}</td>
+              <td className="p-2 border-b">${product.price}</td>
+              <td className="p-2 border-b">
                 <button
                   onClick={() => editProduct(product)}
-                  className="mr-2 text-yellow-500"
+                  className="px-3 py-1 mr-2 text-white bg-yellow-500 rounded"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => deleteProduct(product.id)}
-                  className="text-red-500"
+                  className="px-3 py-1 text-white bg-red-500 rounded"
                 >
                   Delete
                 </button>
@@ -181,6 +244,13 @@ export default function ProductsPage() {
           ))}
         </tbody>
       </table>
+
+      <button
+        onClick={openAddProductModal}
+        className="px-4 py-2 mt-4 text-white bg-green-600 rounded"
+      >
+        Add Product
+      </button>
     </div>
   );
 }
