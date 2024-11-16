@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(BUYER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  buyer     Buyer?   @relation("UserToBuyer")
+  seller    Seller?  @relation("UserToSeller")
+}
+
+model Buyer {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation("UserToBuyer", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Seller {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation("UserToSeller", fields: [userId], references: [id], onDelete: Cascade)
+  isVerified      Boolean  @default(false)
+  shopName        String
+  shopDescription String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  sellerId    String
+  seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
