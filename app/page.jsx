@@ -31,7 +31,7 @@ export default function HomePage() {
       </section>
 
       <section className="px-5 lg:px-32 md:px-16 text-blue-950">
-        <section className="flex flex-row w-full h-[25vh] -mt-4 gap-4 ">
+        <section className="flex flex-row w-full h-[25vh] -mt-4 gap-4">
           <div className="z-10 w-2/6 h-full p-5 bg-white rounded shadow">
             <div className="flex items-center justify-between">
               <h3>Shop by Category</h3>
@@ -59,11 +59,9 @@ export default function HomePage() {
                   key={product.id} // Correctly place the key here
                   className="block"
                 >
-                  <div
-                    className="p-4 bg-gray-100 rounded shadow hover:shadow-md"
-                  >
+                  <div className="p-4 bg-gray-100 rounded shadow hover:shadow-md">
                     <img
-                      src={product.image || "https://placehold.co/200x150"}
+                      src={product.imageUrl || "https://placehold.co/200x150"} // Use product.imageUrl here
                       alt={product.name}
                       className="w-full h-auto mb-2 rounded"
                     />

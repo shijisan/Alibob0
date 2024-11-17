@@ -3,9 +3,10 @@ import prisma from "@/lib/prisma";
 import cloudinary from "cloudinary";
 import { NextResponse } from "next/server";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+// Cloudinary configuration
+cloudinary.v2.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
@@ -13,7 +14,7 @@ cloudinary.config({
 const verifyToken = (req) => {
   const token = req.headers.get("Authorization")?.split(" ")[1];
   if (!token) {
-    throw new Error("No token provided");
+    throw new Error("No token provided in Authorization header");
   }
 
   try {
@@ -29,15 +30,17 @@ export async function POST(req) {
   try {
     console.log("POST request received");
 
+    // Verify user token and get userId
     const userId = verifyToken(req);
     console.log("User ID:", userId);
 
+    // Fetch the seller associated with the user
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
 
     if (!seller) {
-      console.log("Seller not found");
+      console.log("Seller not found for User ID:", userId);
       return NextResponse.json({ error: "Seller not found" }, { status: 404 });
     }
 
@@ -49,6 +52,7 @@ export async function POST(req) {
 
     console.log("Form data received:", { name, description, price, imageFile });
 
+    // Validate inputs
     if (!name || !description || !price || !imageFile) {
       console.log("Missing required fields");
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -56,41 +60,34 @@ export async function POST(req) {
 
     const parsedPrice = parseFloat(price);
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      console.log("Invalid price value");
+      console.log("Invalid price value:", price);
       return NextResponse.json({ error: "Invalid price value" }, { status: 400 });
     }
 
+    // Handle image upload
     let uploadedImageUrl = "";
-    if (typeof imageFile === "string") {
-      // If imageFile is already a URL (string)
-      uploadedImageUrl = imageFile;
-      console.log("Using provided image URL:", uploadedImageUrl);
-    } else if (imageFile) {
-      // If imageFile is a File object, upload to Cloudinary
-      console.log("Uploading image...");
-      try {
-        const buffer = await imageFile.arrayBuffer();
-        const file = Buffer.from(buffer);
+    if (imageFile) {
+      console.log("Uploading image to Cloudinary...");
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
 
-        const cloudinaryUploadResult = await cloudinary.v2.uploader.upload(file, {
-          folder: "products/mainImage",
-          resource_type: "auto",
+      try {
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.v2.uploader.upload_stream(
+            { folder: "alibobo/products/mainImage", resource_type: "auto" },
+            (error, result) => (error ? reject(error) : resolve(result))
+          ).end(buffer); // End the stream with the buffer
         });
 
-        if (cloudinaryUploadResult?.secure_url) {
-          uploadedImageUrl = cloudinaryUploadResult.secure_url;
-          console.log("Image uploaded successfully:", uploadedImageUrl);
-        } else {
-          console.log("Image upload failed");
-          return NextResponse.json({ error: "Image upload failed" }, { status: 500 });
-        }
-      } catch (cloudinaryError) {
-        console.log("Cloudinary upload error:", cloudinaryError.message);
-        return NextResponse.json({ error: "Cloudinary upload failed" }, { status: 500 });
+        uploadedImageUrl = uploadResult.secure_url;
+        console.log("Image uploaded successfully:", uploadedImageUrl);
+      } catch (error) {
+        console.error("Cloudinary upload error:", error.message);
+        return NextResponse.json({ error: "Image upload failed" }, { status: 500 });
       }
     }
 
-    console.log("Creating product in the database...");
+    // Create the product in the database
+    console.log("Saving product to the database...");
     const product = await prisma.product.create({
       data: {
         name,
@@ -114,23 +111,31 @@ export async function GET(req) {
   try {
     console.log("GET request received");
 
-    const userId = verifyToken(req);  // Verifying the JWT token
+    // Verify user token and get userId
+    const userId = verifyToken(req);
     console.log("User ID:", userId);
 
+    // Fetch seller and their products
     const seller = await prisma.seller.findUnique({
-      where: { userId },  // Fetch the seller using the userId from the token
-      include: { products: true },  // Include the seller's products in the result
+      where: { userId },
+      include: { products: true },
     });
 
     if (!seller) {
-      console.log("Seller not found");
+      console.log("Seller not found for User ID:", userId);
       return NextResponse.json({ error: "Seller not found" }, { status: 404 });
     }
 
-    console.log("Seller found, returning products");
-    return NextResponse.json({ products: seller.products }, { status: 200 });  // Return the list of products
+    // Include image URLs directly in the response if additional processing is needed
+    console.log("Seller and products found, returning response");
+    const products = seller.products.map((product) => ({
+      ...product,
+      imageUrl: product.imageUrl, // Use the existing URL from the database
+    }));
+
+    return NextResponse.json({ products }, { status: 200 });
   } catch (error) {
-    console.log("Error:", error.message);
+    console.error("Error during GET request:", error.message);
     return NextResponse.json({ error: error.message || "Failed to fetch products" }, { status: 500 });
   }
 }

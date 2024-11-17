@@ -11,9 +11,9 @@ export default function ProductsPage() {
     image: null,
   });
   const [error, setError] = useState("");
-  const [editMode, setEditMode] = useState(false); // To track if the modal is in edit mode
-  const [editProductId, setEditProductId] = useState(null); // To store the product being edited
-  const [isModalOpen, setIsModalOpen] = useState(false); // Track modal visibility
+  const [editMode, setEditMode] = useState(false);
+  const [editProductId, setEditProductId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -49,33 +49,6 @@ export default function ProductsPage() {
       return;
     }
 
-    let imageUrl = "";
-    if (image) {
-      const formDataForCloudinary = new FormData();
-      formDataForCloudinary.append("file", image);
-      formDataForCloudinary.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-
-      try {
-        const cloudinaryRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formDataForCloudinary,
-          }
-        );
-
-        const cloudinaryData = await cloudinaryRes.json();
-        if (cloudinaryData.error) {
-          throw new Error(cloudinaryData.error.message);
-        }
-
-        imageUrl = cloudinaryData.secure_url;
-      } catch (error) {
-        setError("Failed to upload image.");
-        return;
-      }
-    }
-
     const url = editMode ? `/api/seller/products/${editProductId}` : "/api/seller/products";
     const method = editMode ? "PATCH" : "POST";
 
@@ -84,7 +57,7 @@ export default function ProductsPage() {
       formDataForServer.append("name", name);
       formDataForServer.append("description", description);
       formDataForServer.append("price", parsedPrice);
-      formDataForServer.append("image", image ? imageUrl : "");
+      formDataForServer.append("image", image);
 
       const res = await fetch(url, {
         method,
@@ -101,7 +74,7 @@ export default function ProductsPage() {
       setFormData({ name: "", description: "", price: "", image: null });
       setEditMode(false);
       setEditProductId(null);
-      setIsModalOpen(false); // Close modal after submission
+      setIsModalOpen(false);
       fetchProducts();
     } catch (error) {
       setError(error.message);
@@ -112,7 +85,7 @@ export default function ProductsPage() {
     setFormData({ name: product.name, description: product.description, price: product.price, image: null });
     setEditMode(true);
     setEditProductId(product.id);
-    setIsModalOpen(true); // Open modal for editing
+    setIsModalOpen(true);
   };
 
   const deleteProduct = async (id) => {
@@ -137,14 +110,14 @@ export default function ProductsPage() {
   };
 
   const openAddProductModal = () => {
-    setEditMode(false); // Set to add mode
-    setFormData({ name: "", description: "", price: "", image: null }); // Reset form
-    setIsModalOpen(true); // Open the modal for adding
+    setEditMode(false);
+    setFormData({ name: "", description: "", price: "", image: null });
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false); // Close the modal
-    setFormData({ name: "", description: "", price: "", image: null }); // Optionally reset form data
+    setIsModalOpen(false);
+    setFormData({ name: "", description: "", price: "", image: null });
   };
 
   useEffect(() => {
@@ -156,7 +129,6 @@ export default function ProductsPage() {
       <h1 className="mb-4 text-2xl font-bold">Your Products</h1>
       {error && <p className="text-red-500">{error}</p>}
 
-      {/* Modal Logic */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
@@ -198,10 +170,7 @@ export default function ProductsPage() {
                 {editMode ? "Update Product" : "Add Product"}
               </button>
             </form>
-            <button
-              onClick={closeModal}
-              className="mt-2 text-red-500"
-            >
+            <button onClick={closeModal} className="mt-2 text-red-500">
               Close
             </button>
           </div>
@@ -227,16 +196,10 @@ export default function ProductsPage() {
               <td className="p-2 border-b">{product.name}</td>
               <td className="p-2 border-b">${product.price}</td>
               <td className="p-2 border-b">
-                <button
-                  onClick={() => editProduct(product)}
-                  className="px-3 py-1 mr-2 text-white bg-yellow-500 rounded"
-                >
+                <button onClick={() => editProduct(product)} className="text-blue-500">
                   Edit
                 </button>
-                <button
-                  onClick={() => deleteProduct(product.id)}
-                  className="px-3 py-1 text-white bg-red-500 rounded"
-                >
+                <button onClick={() => deleteProduct(product.id)} className="ml-4 text-red-500">
                   Delete
                 </button>
               </td>
@@ -247,9 +210,9 @@ export default function ProductsPage() {
 
       <button
         onClick={openAddProductModal}
-        className="px-4 py-2 mt-4 text-white bg-green-600 rounded"
+        className="px-6 py-2 mt-4 text-white bg-green-600 rounded"
       >
-        Add Product
+        Add New Product
       </button>
     </div>
   );

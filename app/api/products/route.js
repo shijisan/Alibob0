@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma"; 
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -7,6 +7,13 @@ export async function GET() {
       take: 10,
       orderBy: {
         createdAt: "desc", 
+      },
+      select: { // Specify the fields to fetch
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        imageUrl: true, // Include the image URL
       },
     });
 
