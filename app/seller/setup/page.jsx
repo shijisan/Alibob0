@@ -10,11 +10,39 @@ export default function SellerSetupPage() {
    const router = useRouter();
 
    useEffect(() => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-         setError('No token found. Please log in.');
-      }
-   }, []);
+      const checkSellerVerification = async () => {
+         const token = localStorage.getItem('token');
+         if (!token) {
+            setError('No token found. Please log in.');
+            return;
+         }
+   
+         try {
+            const res = await fetch('/api/seller', {
+               method: 'GET',
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            });
+   
+            if (!res.ok) {
+               const data = await res.json();
+               setError(data.error || 'Failed to fetch seller verification status');
+               return;
+            }
+   
+            const seller = await res.json();
+            if (seller.isVerified) {
+               router.push('/seller/account');
+            }
+         } catch (err) {
+            setError('Failed to verify seller status');
+         }
+      };
+   
+      checkSellerVerification();
+   }, [router]);
+   
 
    const handleSubmit = async (e) => {
       e.preventDefault();

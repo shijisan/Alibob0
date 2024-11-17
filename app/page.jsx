@@ -52,18 +52,20 @@ export default function HomePage() {
           {error ? (
             <p className="text-red-500">{error}</p>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {products.map((product) => (
                 <a
                   href={`/product/${product.id}`}
-                  key={product.id} // Correctly place the key here
+                  key={product.id} 
                   className="block"
                 >
                   <div className="p-4 bg-gray-100 rounded shadow hover:shadow-md">
                     <img
-                      src={product.imageUrl || "https://placehold.co/200x150"} // Use product.imageUrl here
+                      src={product.imageUrl || "https://placehold.co/200x150"} 
                       alt={product.name}
-                      className="w-full h-auto mb-2 rounded"
+                      className="object-cover w-full h-auto mb-2 bg-white border rounded aspect-square"
+                      height={250}
+                      width={250}
                     />
                     <h4 className="text-lg font-semibold">{product.name}</h4>
                     <p className="mb-1 text-sm text-gray-500">

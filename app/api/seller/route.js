@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -15,7 +15,12 @@ export async function GET(req) {
 
     // Fetch the seller data based on the userId
     const seller = await prisma.seller.findUnique({
-      where: { userId: userId },
+      where: { userId },
+      select: {
+        id: true,
+        isVerified: true,
+        shopName: true,
+      },
     });
 
     if (!seller) {
