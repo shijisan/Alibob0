@@ -31,3 +31,7 @@ input{
 #searchBar::-webkit-search-cancel-button{
   appearance: none;
 }
+
+#quantity::-webkit-inner-spin-button, #quantity::-webkit-outer-spin-button{
+  appearance: none;
+}
