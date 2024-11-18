@@ -42,24 +42,20 @@ export default function SellerAccount() {
 		fetchSellerData();
 	}, [router]);
 
-	// Show loading state
 	if (loading) {
 		return <div>Loading...</div>;
 	}
 
-	// Show error if there was one
 	if (error) {
 		return <div className="error">{error}</div>;
 	}
 
-	// Redirect to setup if not verified
 	useEffect(() => {
 		if (seller && !seller.isVerified) {
 			router.push('/seller/setup');
 		}
 	}, [seller, router]);
 
-	// If seller is not verified, show waiting message
 	if (seller && seller.isVerified === false) {
 		return (
 			<div className="waiting-container">
@@ -69,14 +65,12 @@ export default function SellerAccount() {
 		);
 	}
 
-	// If verified, show normal dashboard
 	return (
 		<div className="flex flex-col items-center justify-center min-h-screen dashboard-container">
 			<h1>Welcome to your Seller Dashboard</h1>
 			<p>Shop Name: {seller.shopName}</p>
 			<p>Shop Description: {seller.shopDescription}</p>
 			<p>Verification Status: {seller.isVerified ? "Verified" : "Not Verified"}</p>
-			{/* Add more dashboard content here */}
 		</div>
 	);
 }
