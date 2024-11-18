@@ -1,4 +1,5 @@
 import { Poppins } from "next/font/google";
+import { Suspense } from "react"; // Import Suspense
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import TokenChecker from "@/components/TokenChecker";
@@ -17,9 +18,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${poppins.className}`}>
-        <NavBar />
-        <TokenChecker />
-        {children}
+        <Suspense fallback={<p>Loading...</p>}>
+          <NavBar />
+          <TokenChecker />
+          {children}
+        </Suspense>
       </body>
     </html>
   );
