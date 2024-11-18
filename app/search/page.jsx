@@ -1,48 +1,46 @@
-"use client";
+"use client"
 
-import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
-export default function SearchPage() {
-  const searchParams = useSearchParams(); 
+export default function SearchPage({ initialProducts }) {
+  const [products, setProducts] = useState(initialProducts);
+  const [error, setError] = useState("");
+
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
-  const [products, setProducts] = useState([]);
-  const [error, setError] = useState("");
-
-  const fetchProducts = async () => {
-    try {
-      const query = new URLSearchParams({
-        ...(searchQuery && { search: searchQuery }),
-        ...(minPrice && { minPrice }),
-        ...(maxPrice && { maxPrice }),
-      }).toString();
-
-      const res = await fetch(`/api/products/search?${query}`);
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch products");
-      }
-
-      const data = await res.json();
-
-      if (data.length === 0) {
-        setProducts([]);
-        setError("No products match your search criteria.");
-        return;
-      }
-
-      setProducts(data);
-      setError("");
-    } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
-    }
-  };
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const query = new URLSearchParams({
+          ...(searchQuery && { search: searchQuery }),
+          ...(minPrice && { minPrice }),
+          ...(maxPrice && { maxPrice }),
+        }).toString();
+
+        const res = await fetch(`/api/products/search?${query}`);
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await res.json();
+        if (data.error) {
+          setError(data.error);
+          setProducts([]);
+        } else {
+          setProducts(data);
+        }
+      } catch (err) {
+        setError(err.message || "An unexpected error occurred.");
+      }
+    };
+
     fetchProducts();
-  }, [searchQuery, minPrice, maxPrice]); 
+  }, [searchQuery, minPrice, maxPrice]); // Dependency array
 
   const handleRefineSearch = (e) => {
     e.preventDefault();
@@ -53,7 +51,7 @@ export default function SearchPage() {
       ...(maxPrice && { maxPrice }),
     }).toString();
 
-    window.location.search = query; 
+    window.location.search = query; // Trigger a navigation to refresh the query
   };
 
   return (
@@ -62,6 +60,7 @@ export default function SearchPage() {
 
       {error && <p className="mb-4 text-red-500">{error}</p>}
 
+      {/* Refine Search Form */}
       <form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
         <input
           type="text"
@@ -92,37 +91,64 @@ export default function SearchPage() {
         </button>
       </form>
 
-      <Suspense fallback={<div>Loading search results...</div>}>
-		
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {products.length > 0 ? (
-            products.map((product) => (
-              <a
-                href={`/product/${product.id}`}
-                key={product.id}
-                className="block"
-              >
-                <div className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="object-cover mb-2 bg-white border rounded aspect-square"
-                    height={250}
-                    width={250}
-                  />
-                  <h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
-                  <p className="mb-2 text-sm text-gray-600">{product.description}</p>
-                  <p className="font-bold text-blue-600">
-                    ${product.price.toFixed(2)}
-                  </p>
-                </div>
-              </a>
-            ))
-          ) : (
-            !error && <p className="text-gray-500">No products found</p>
-          )}
-        </div>
-      </Suspense>
+      {/* Product Results */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {products.length > 0 ? (
+          products.map((product) => (
+            <a
+              href={`/product/${product.id}`}
+              key={product.id}
+              className="block"
+            >
+              <div className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="object-cover mb-2 bg-white border rounded aspect-square"
+                  height={250}
+                  width={250}
+                />
+                <h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
+                <p className="mb-2 text-sm text-gray-600">{product.description}</p>
+                <p className="font-bold text-blue-600">
+                  ${product.price.toFixed(2)}
+                </p>
+              </div>
+            </a>
+          ))
+        ) : (
+          !error && <p className="text-gray-500">No products found</p>
+        )}
+      </div>
     </div>
   );
+}
+
+// This will run on the server-side
+export async function getServerSideProps({ query }) {
+  try {
+    const { search, minPrice, maxPrice } = query;
+
+    const products = await prisma.product.findMany({
+      where: {
+        AND: [
+          search
+            ? {
+                OR: [
+                  { name: { contains: search, mode: "insensitive" } },
+                  { description: { contains: search, mode: "insensitive" } },
+                ],
+              }
+            : {},
+          minPrice ? { price: { gte: parseFloat(minPrice) } } : {},
+          maxPrice ? { price: { lte: parseFloat(maxPrice) } } : {},
+        ],
+      },
+    });
+
+    return { props: { initialProducts: products } };
+  } catch (error) {
+    console.error("Error searching products:", error);
+    return { props: { initialProducts: [] } };
+  }
 }
