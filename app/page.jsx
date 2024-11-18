@@ -1,127 +1,86 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import HeroCarousel from "@/components/HeroCarousel";
 
-export default function SearchPage() {
-	const searchParams = useSearchParams();
-	const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-	const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
-	const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
-	const [products, setProducts] = useState([]);
-	const [error, setError] = useState("");
+export default function HomePage() {
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState("");
 
-	const fetchProducts = async () => {
-		try {
-			const query = new URLSearchParams({
-				...(searchQuery && { search: searchQuery }),
-				...(minPrice && { minPrice }),
-				...(maxPrice && { maxPrice }),
-			}).toString();
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("/api/products");
+        if (!res.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
 
-			const res = await fetch(`/api/products/search?${query}`);
+    fetchProducts();
+  }, []);
 
-			if (!res.ok) {
-				throw new Error("Failed to fetch products");
-			}
+  return (
+    <>
+      <section className="pt-[10vh] z-0">
+        <HeroCarousel />
+      </section>
 
-			const data = await res.json();
+      <section className="px-5 lg:px-32 md:px-16 text-blue-950">
+        <section className="flex flex-row w-full h-[25vh] -mt-4 gap-4">
+          <div className="z-10 w-2/6 h-full p-5 bg-white rounded shadow">
+            <div className="flex items-center justify-between">
+              <h3>Shop by Category</h3>
+              <a
+                className="text-sm text-pink-300 hover:underline"
+                href="/categories"
+              >
+                See More
+              </a>
+            </div>
+          </div>
+          <div className="z-10 w-4/6 h-full p-5 bg-white rounded shadow"></div>
+        </section>
 
-			if (data.length === 0) {
-				setProducts([]);
-				setError("No products match your search criteria.");
-				return;
-			}
+        <section className="min-h-screen p-5 mt-4 bg-white rounded shadow">
+          <h3 className="mb-4 text-xl font-bold">Suggested Products:</h3>
 
-			setProducts(data);
-			setError("");
-		} catch (err) {
-			setError(err.message || "An unexpected error occurred.");
-		}
-	};
-
-	useEffect(() => {
-		fetchProducts();
-	}, [JSON.stringify({ searchQuery, minPrice, maxPrice })]); // Dependency stabilized
-
-	const handleRefineSearch = (e) => {
-		e.preventDefault();
-
-		const query = new URLSearchParams({
-			...(searchQuery && { search: searchQuery }),
-			...(minPrice && { minPrice }),
-			...(maxPrice && { maxPrice }),
-		}).toString();
-
-		window.location.search = query; // Trigger a navigation to refresh the query
-	};
-
-	return (
-		<div className="p-6">
-			<h1 className="mb-6 text-3xl font-bold">Search Results</h1>
-
-			{error && <p className="mb-4 text-red-500">{error}</p>}
-
-			{/* Refine Search Form */}
-			<form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
-				<input
-					type="text"
-					placeholder="Search query"
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-					className="col-span-2 p-2 border rounded"
-				/>
-				<input
-					type="number"
-					placeholder="Min Price"
-					value={minPrice}
-					onChange={(e) => setMinPrice(e.target.value)}
-					className="p-2 border rounded"
-				/>
-				<input
-					type="number"
-					placeholder="Max Price"
-					value={maxPrice}
-					onChange={(e) => setMaxPrice(e.target.value)}
-					className="p-2 border rounded"
-				/>
-				<button
-					type="submit"
-					className="col-span-4 p-2 text-white bg-blue-500 rounded"
-				>
-					Refine Search
-				</button>
-			</form>
-
-			{/* Product Results */}
-			<div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-				{products.length > 0 ? (
-					products.map((product) => (
-						<a
-							href={`/product/${product.id}`}
-							key={product.id}
-							className="block"
-						>
-							<div className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg">
-								<img
-									src={product.imageUrl}
-									alt={product.name}
-									className="object-cover mb-2 bg-white border rounded aspect-square"
-									height={250}
-									width={250}
-								/>
-								<h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
-								<p className="mb-2 text-sm text-gray-600">{product.description}</p>
-								<p className="font-bold text-blue-600">
-									${product.price.toFixed(2)}
-								</p>
-							</div>
-						</a>
-					))
-				) : (
-					!error && <p className="text-gray-500">No products found</p>
-				)}
-			</div>
-		</div>
-	);
+          {error ? (
+            <p className="text-red-500">{error}</p>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {products.map((product) => (
+                <a
+                  href={`/product/${product.id}`}
+                  key={product.id} 
+                  className="block"
+                >
+                  <div className="p-4 bg-gray-100 rounded shadow hover:shadow-md">
+                    <img
+                      src={product.imageUrl} 
+                      alt={product.name}
+                      className="object-cover w-full h-auto mb-2 bg-white border rounded aspect-square"
+                      height={250}
+                      width={250}
+                    />
+                    <h4 className="text-lg font-semibold">{product.name}</h4>
+                    <p className="mb-1 text-sm text-gray-500">
+                      {product.description}
+                    </p>
+                    <p className="font-bold text-blue-700">${product.price}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No products found</p>
+          )}
+        </section>
+      </section>
+    </>
+  );
 }
