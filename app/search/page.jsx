@@ -1,4 +1,4 @@
-"use client";
+"use client"; // This ensures the component runs on the client side only
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -19,7 +19,8 @@ export default function SearchPage() {
 			...(maxPrice && { maxPrice }),
 		}).toString();
 
-		window.location.search = query; 
+		// Trigger navigation to update the query
+		window.location.search = query;
 	};
 
 	return (
@@ -56,6 +57,7 @@ export default function SearchPage() {
 				</button>
 			</form>
 
+			{/* Use Suspense for async loading of results */}
 			<Suspense fallback={<div>Loading...</div>}>
 				<SearchResults
 					searchQuery={searchQuery}
