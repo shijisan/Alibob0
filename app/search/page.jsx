@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import SearchResults from "./SearchResults"; 
+import SearchResults from "@/components/SearchResults";
 
 export default function SearchPage() {
 	const searchParams = useSearchParams();
