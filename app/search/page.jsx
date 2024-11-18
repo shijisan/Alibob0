@@ -28,10 +28,13 @@ export default function SearchPage() {
 			const data = await res.json();
 
 			if (data.length === 0) {
+				setProducts([]);
 				setError("No products match your search criteria.");
+				return;
 			}
 
 			setProducts(data);
+			setError("");
 		} catch (err) {
 			setError(err.message || "An unexpected error occurred.");
 		}
@@ -39,7 +42,7 @@ export default function SearchPage() {
 
 	useEffect(() => {
 		fetchProducts();
-	}, [searchParams]); // Refetch when query params change
+	}, [JSON.stringify({ searchQuery, minPrice, maxPrice })]); // Dependency stabilized
 
 	const handleRefineSearch = (e) => {
 		e.preventDefault();
@@ -99,10 +102,7 @@ export default function SearchPage() {
 							key={product.id}
 							className="block"
 						>
-							<div
-								key={product.id}
-								className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg"
-							>
+							<div className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg">
 								<img
 									src={product.imageUrl}
 									alt={product.name}
