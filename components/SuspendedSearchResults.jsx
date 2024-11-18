@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 
 const SearchResults = ({ searchQuery, minPrice, maxPrice }) => {
   const [products, setProducts] = useState([]);
@@ -74,6 +74,7 @@ const SearchResults = ({ searchQuery, minPrice, maxPrice }) => {
   );
 };
 
+// The Suspense wrapper should be in a higher level component or separate file
 export default function SuspendedSearchResults(props) {
   return (
     <Suspense fallback={<p>Loading search results...</p>}>
