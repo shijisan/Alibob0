@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function SearchPage() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
@@ -42,7 +42,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [JSON.stringify({ searchQuery, minPrice, maxPrice })]); // Dependency stabilized
+  }, [searchQuery, minPrice, maxPrice]); 
 
   const handleRefineSearch = (e) => {
     e.preventDefault();
@@ -53,7 +53,7 @@ export default function SearchPage() {
       ...(maxPrice && { maxPrice }),
     }).toString();
 
-    window.location.search = query; // Trigger a navigation to refresh the query
+    window.location.search = query; 
   };
 
   return (
@@ -62,7 +62,6 @@ export default function SearchPage() {
 
       {error && <p className="mb-4 text-red-500">{error}</p>}
 
-      {/* Refine Search Form */}
       <form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
         <input
           type="text"
@@ -93,9 +92,8 @@ export default function SearchPage() {
         </button>
       </form>
 
-      {/* Suspense Boundary for Products */}
       <Suspense fallback={<div>Loading search results...</div>}>
-        {/* Product Results */}
+		
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.length > 0 ? (
             products.map((product) => (
