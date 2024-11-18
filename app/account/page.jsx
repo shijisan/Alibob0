@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function AccountPage() {
   const [accountInfo, setAccountInfo] = useState(null);
@@ -54,6 +55,7 @@ export default function AccountPage() {
       <p>Email: {accountInfo.email}</p>
       <p>Role: {accountInfo.role}</p>
       <p>Account created on: {new Date(accountInfo.createdAt).toLocaleDateString()}</p>
+      <LogoutButton/>
     </div>
   );
 }
