@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -58,43 +57,44 @@ export default function SearchPage() {
   };
 
   return (
-    <Suspense fallback={<div>Loading search results...</div>}>
-      <div className="p-6">
-        <h1 className="mb-6 text-3xl font-bold">Search Results</h1>
+    <div className="p-6">
+      <h1 className="mb-6 text-3xl font-bold">Search Results</h1>
 
-        {error && <p className="mb-4 text-red-500">{error}</p>}
+      {error && <p className="mb-4 text-red-500">{error}</p>}
 
-        {/* Refine Search Form */}
-        <form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Search query"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="col-span-2 p-2 border rounded"
-          />
-          <input
-            type="number"
-            placeholder="Min Price"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="p-2 border rounded"
-          />
-          <input
-            type="number"
-            placeholder="Max Price"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="col-span-4 p-2 text-white bg-blue-500 rounded"
-          >
-            Refine Search
-          </button>
-        </form>
+      {/* Refine Search Form */}
+      <form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search query"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="col-span-2 p-2 border rounded"
+        />
+        <input
+          type="number"
+          placeholder="Min Price"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <input
+          type="number"
+          placeholder="Max Price"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <button
+          type="submit"
+          className="col-span-4 p-2 text-white bg-blue-500 rounded"
+        >
+          Refine Search
+        </button>
+      </form>
 
+      {/* Suspense Boundary for Products */}
+      <Suspense fallback={<div>Loading search results...</div>}>
         {/* Product Results */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.length > 0 ? (
@@ -124,7 +124,7 @@ export default function SearchPage() {
             !error && <p className="text-gray-500">No products found</p>
           )}
         </div>
-      </div>
-    </Suspense>
+      </Suspense>
+    </div>
   );
 }
