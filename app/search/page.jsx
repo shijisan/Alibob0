@@ -1,103 +1,127 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [products, setProducts] = useState([]);
-  const [error, setError] = useState("");
+	const searchParams = useSearchParams();
+	const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+	const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
+	const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+	const [products, setProducts] = useState([]);
+	const [error, setError] = useState("");
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    setError("");
-    setProducts([]); // Reset products for a new search
+	const fetchProducts = async () => {
+		try {
+			const query = new URLSearchParams({
+				...(searchQuery && { search: searchQuery }),
+				...(minPrice && { minPrice }),
+				...(maxPrice && { maxPrice }),
+			}).toString();
 
-    try {
-      // Dynamically build query parameters
-      const query = new URLSearchParams({
-        ...(searchQuery && { search: searchQuery }),
-        ...(minPrice && { minPrice }),
-        ...(maxPrice && { maxPrice }),
-      }).toString();
+			const res = await fetch(`/api/products/search?${query}`);
 
-      const res = await fetch(`/api/products/search?${query}`);
+			if (!res.ok) {
+				throw new Error("Failed to fetch products");
+			}
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch products");
-      }
+			const data = await res.json();
 
-      const data = await res.json();
+			if (data.length === 0) {
+				setError("No products match your search criteria.");
+			}
 
-      if (data.length === 0) {
-        setError("No products match your search criteria.");
-      }
+			setProducts(data);
+		} catch (err) {
+			setError(err.message || "An unexpected error occurred.");
+		}
+	};
 
-      setProducts(data);
-    } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
-    }
-  };
+	useEffect(() => {
+		fetchProducts();
+	}, [searchParams]); // Refetch when query params change
 
-  return (
-    <div className="p-6">
-      <h1 className="mb-4 text-2xl font-bold">Search Products</h1>
+	const handleRefineSearch = (e) => {
+		e.preventDefault();
 
-      {error && <p className="mb-4 text-red-500">{error}</p>}
+		const query = new URLSearchParams({
+			...(searchQuery && { search: searchQuery }),
+			...(minPrice && { minPrice }),
+			...(maxPrice && { maxPrice }),
+		}).toString();
 
-      <form onSubmit={handleSearch} className="grid grid-cols-4 gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by name or description"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="col-span-2 p-2 border rounded"
-        />
-        <input
-          type="number"
-          placeholder="Min Price"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <input
-          type="number"
-          placeholder="Max Price"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          className="p-2 border rounded"
-        />
-        <button
-          type="submit"
-          className="col-span-4 p-2 text-white bg-blue-500 rounded"
-        >
-          Search
-        </button>
-      </form>
+		window.location.search = query; // Trigger a navigation to refresh the query
+	};
 
-      {products.length > 0 ? (
-        <table className="w-full border table-auto">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-2 border">Name</th>
-              <th className="px-4 py-2 border">Description</th>
-              <th className="px-4 py-2 border">Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-4 py-2 border">{product.name}</td>
-                <td className="px-4 py-2 border">{product.description}</td>
-                <td className="px-4 py-2 border">${product.price.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        !error && <p className="text-gray-500">No products found</p>
-      )}
-    </div>
-  );
+	return (
+		<div className="p-6">
+			<h1 className="mb-6 text-3xl font-bold">Search Results</h1>
+
+			{error && <p className="mb-4 text-red-500">{error}</p>}
+
+			{/* Refine Search Form */}
+			<form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
+				<input
+					type="text"
+					placeholder="Search query"
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="col-span-2 p-2 border rounded"
+				/>
+				<input
+					type="number"
+					placeholder="Min Price"
+					value={minPrice}
+					onChange={(e) => setMinPrice(e.target.value)}
+					className="p-2 border rounded"
+				/>
+				<input
+					type="number"
+					placeholder="Max Price"
+					value={maxPrice}
+					onChange={(e) => setMaxPrice(e.target.value)}
+					className="p-2 border rounded"
+				/>
+				<button
+					type="submit"
+					className="col-span-4 p-2 text-white bg-blue-500 rounded"
+				>
+					Refine Search
+				</button>
+			</form>
+
+			{/* Product Results */}
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+				{products.length > 0 ? (
+					products.map((product) => (
+						<a
+							href={`/product/${product.id}`}
+							key={product.id}
+							className="block"
+						>
+							<div
+								key={product.id}
+								className="flex flex-col p-4 border rounded shadow-sm hover:shadow-lg"
+							>
+								<img
+									src={product.imageUrl}
+									alt={product.name}
+									className="object-cover mb-2 bg-white border rounded aspect-square"
+									height={250}
+									width={250}
+								/>
+								<h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
+								<p className="mb-2 text-sm text-gray-600">{product.description}</p>
+								<p className="font-bold text-blue-600">
+									${product.price.toFixed(2)}
+								</p>
+							</div>
+						</a>
+					))
+				) : (
+					!error && <p className="text-gray-500">No products found</p>
+				)}
+			</div>
+		</div>
+	);
 }

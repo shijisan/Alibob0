@@ -27,3 +27,7 @@ body {
 input{
   background-color: #fafafa;
 }
+
+#searchBar::-webkit-search-cancel-button{
+  appearance: none;
+}
