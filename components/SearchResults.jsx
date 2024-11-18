@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, Suspense } from "react";
 
 const SearchResults = ({ searchQuery, minPrice, maxPrice }) => {
   const [products, setProducts] = useState([]);
@@ -73,4 +74,10 @@ const SearchResults = ({ searchQuery, minPrice, maxPrice }) => {
   );
 };
 
-export default SearchResults;
+export default function SuspendedSearchResults(props) {
+  return (
+    <Suspense fallback={<p>Loading search results...</p>}>
+      <SearchResults {...props} />
+    </Suspense>
+  );
+}
