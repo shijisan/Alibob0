@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import SearchResults from "@/components/SearchResults";
+import SearchResults from "./SearchResults"; 
 
 export default function SearchPage() {
 	const searchParams = useSearchParams();
@@ -26,7 +26,6 @@ export default function SearchPage() {
 		<div className="p-6">
 			<h1 className="mb-6 text-3xl font-bold">Search Results</h1>
 
-			{/* Refine Search Form */}
 			<form onSubmit={handleRefineSearch} className="grid grid-cols-4 gap-4 mb-6">
 				<input
 					type="text"
@@ -57,11 +56,13 @@ export default function SearchPage() {
 				</button>
 			</form>
 
-			<SearchResults
-				searchQuery={searchQuery}
-				minPrice={minPrice}
-				maxPrice={maxPrice}
-			/>
+			<Suspense fallback={<div>Loading...</div>}>
+				<SearchResults
+					searchQuery={searchQuery}
+					minPrice={minPrice}
+					maxPrice={maxPrice}
+				/>
+			</Suspense>
 		</div>
 	);
 }
