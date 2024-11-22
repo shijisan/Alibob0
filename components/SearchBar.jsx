@@ -21,7 +21,7 @@ export default function SearchBar() {
       <input
         className="w-11/12 px-4 py-1 font-normal border rounded-s focus:outline-none"
         type="text"
-        placeholder="Search for products..."
+        placeholder="Alibobo"
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
       />

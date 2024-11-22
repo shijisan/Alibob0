@@ -86,7 +86,7 @@ export default function SearchPage() {
 					placeholder="Search query"
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="col-span-2 p-2 border rounded"
+					className="p-2 border rounded "
 				/>
 				<input
 					type="number"

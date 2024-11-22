@@ -60,21 +60,38 @@ export default function ProductsPage() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-
+  
       if (!res.ok) {
         throw new Error("Failed to fetch user role");
       }
-
+  
       const data = await res.json();
       setUserRole(data.role);
-
-      if (data.role !== "SELLER" || !data.seller?.isVerified) {
+  
+      if (data.role === "SELLER") {
+        // Fetch seller data to check if they are verified
+        const sellerRes = await fetch("/api/seller", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+  
+        if (!sellerRes.ok) {
+          throw new Error("Failed to fetch seller data");
+        }
+  
+        const sellerData = await sellerRes.json();
+        if (!sellerData.isVerified) {
+          router.push("/seller/setup"); // Redirect if seller is not verified
+        }
+      } else {
         router.push("/seller/setup"); // Redirect if not a seller
       }
     } catch (error) {
       setError(error.message);
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();

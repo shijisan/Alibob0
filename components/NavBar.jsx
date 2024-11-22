@@ -4,7 +4,7 @@ import SearchBar from "./SearchBar";
 import Cart from "./CartDropdown";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faTimes, faCartShopping } from "@fortawesome/free-solid-svg-icons";
 
 export default function NavBar() {
     const [menuOpen, setMenuOpen] = useState(false); // Track if the menu is open
@@ -16,9 +16,13 @@ export default function NavBar() {
     return (
         <>
             <nav className="px-5 h-[10vh] bg-gradient-to-b from-blue-100 via-blue-100 via-50% to-pink-300 text-blue-950 w-full fixed top-0 flex justify-evenly font-medium z-30">
-                <div className="inline-flex items-center w-3/4 lg:w-1/2 justify-evenly">
+                <div className="inline-flex items-center w-1/2 lg:w-1/2 justify-evenly">
                     <h2 className="hidden text-2xl font-bold md:block">ALIBOBO</h2>
                     <SearchBar />
+                </div>
+
+                <div className="flex items-center justify-center md:hidden">
+                    <a href="/cart"><FontAwesomeIcon icon={faCartShopping} /></a>
                 </div>
 
                 <div className="flex items-center justify-center md:hidden">
@@ -35,13 +39,12 @@ export default function NavBar() {
                     <ul className="w-full text-center bg-pink-300 md:bg-transparent">
                         <li><a href="/" className="block py-2">Home</a></li>
                         <li><a href="/seller/setup" className="block py-2">Seller</a></li>
-                        <li><Cart /></li>
                         <li><a href="/account" className="block py-2">Account</a></li>
                     </ul>
                 </div>
 
                 {/* Desktop Menu: Keep it as is, visible on larger screens */}
-                <ul className="items-center hidden w-1/4 md:w-1/2 md:inline-flex justify-evenly">
+                <ul className="items-center hidden w-1/2 md:inline-flex justify-evenly">
                     <li><a href="/">Home</a></li>
                     <li><a href="/seller/setup">Seller</a></li>
                     <li><Cart /></li>

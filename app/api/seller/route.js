@@ -18,6 +18,7 @@ export async function GET(req) {
         id: true,
         isVerified: true,
         shopName: true,
+        shopDescription: true,
       },
     });
 
