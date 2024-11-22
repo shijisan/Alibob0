@@ -50,6 +50,11 @@ export default function SellerSetupPage() {
 
                const seller = await resSeller.json();
                setIsSellerVerified(seller.isVerified); // Update seller verification status
+
+               // If the seller is verified, redirect to /seller/account
+               if (seller.isVerified) {
+                  router.push("/seller/account");
+               }
             }
          } catch (err) {
             setError("Failed to verify seller status");
@@ -95,6 +100,10 @@ export default function SellerSetupPage() {
 
    // Render seller-specific states
    if (userRole === "SELLER") {
+      if (isSellerVerified === null) {
+         return <div>Loading verification status...</div>; // Optional loading state for verification status
+      }
+
       if (isSellerVerified) {
          return (
             <section className="flex flex-col items-center justify-center min-h-screen seller-setup-container">
