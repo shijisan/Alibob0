@@ -5,6 +5,7 @@ import LogoutButton from "@/components/LogoutButton";
 
 export default function SellerAccount() {
   const [user, setUser] = useState(null);  // Changed to user instead of seller
+  const [seller, setSeller] = useState(null);  // Add state for seller data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -59,7 +60,8 @@ export default function SellerAccount() {
 
             if (sellerData.isVerified) {
               console.log("Case: Seller, isVerified = true. Access granted.");
-              setUser(data);  // Set the user data here, since it's the user data now
+              setUser(data);  // Set the user data here
+              setSeller(sellerData);  // Set the seller data here
             } else {
               console.log("Case: Seller, isVerified = false. Redirecting to /seller/setup.");
               router.push("/seller/setup");
@@ -93,11 +95,11 @@ export default function SellerAccount() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen dashboard-container">
       <h1>Welcome to your Seller Dashboard</h1>
-      {user && user.role === "SELLER" && (
+      {user && seller && user.role === "SELLER" && (
         <>
-          <p>Shop Name: {user.seller.shopName}</p>
-          <p>Shop Description: {user.seller.shopDescription}</p>
-          <p>Verification Status: {user.seller.isVerified ? "Verified" : "Not Verified"}</p>
+          <p>Shop Name: {seller.shopName}</p>
+          <p>Shop Description: {seller.shopDescription || "No description provided"}</p>
+          <p>Verification Status: {seller.isVerified ? "Verified" : "Not Verified"}</p>
         </>
       )}
       <LogoutButton />
