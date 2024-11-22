@@ -9,14 +9,15 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
   name      String
   role      Role     @default(BUYER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   buyer     Buyer?   @relation("UserToBuyer")
   seller    Seller?  @relation("UserToSeller")
+  cart      Cart?    @relation("UserToCart")
 }
 
 model Buyer {
@@ -28,35 +29,68 @@ model Buyer {
 }
 
 model Seller {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation("UserToSeller", fields: [userId], references: [id], onDelete: Cascade)
-  isVerified      Boolean  @default(false)
-  shopName        String
-  shopDescription String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  products        Product[] @relation("SellerToProducts") // Define the relation here
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation("UserToSeller", fields: [userId], references: [id], onDelete: Cascade)
+  isVerified      Boolean   @default(false)
+  shopName        String    @db.VarChar(100)
+  shopDescription String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  products        Product[] @relation("SellerToProducts")
 }
 
 model Admin {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String
+  password  String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique @db.VarChar(100)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[] @relation("CategoryToProducts")
+}
+
 model Product {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   sellerId    String
-  seller      Seller   @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade) // Inverse relation
+  seller      Seller      @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category    @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
   name        String
   description String
   price       Float
-  imageUrl    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  imageUrl    String?     // Optional image URL
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   CartItem[]  @relation("ProductToCartItems")
+}
+
+model Cart {
+  id        String      @id @default(uuid())
+  userId    String      @unique
+  user      User        @relation("UserToCart", fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]  @relation("CartToCartItems")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation("CartToCartItems", fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation("ProductToCartItems", fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([cartId, productId]) // Ensure one product per cart
 }
 
 enum Role {

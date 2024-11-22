@@ -1,18 +1,30 @@
-import { useRouter } from "next/navigation";
+'use client';
 
-export default function LogoutButton(){
+import { useRouter, usePathname } from 'next/navigation';
 
-   const router = useRouter();
+export default function LogoutButton() {
+  const router = useRouter();
+  const pathname = usePathname();
 
-   const handleLogout = () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("adminToken");
-      router.push("/login");
-   }
+  const isAdminPath = pathname.startsWith('/admin'); 
 
-   return(
-   <>
-      <button className="px-4 py-2 text-white bg-red-500 border rounded-md" onClick={handleLogout}>LOGOUT</button>
-   </>
-   );
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('adminToken');
+
+    if (isAdminPath) {
+      router.push('/admin/login');
+    } else {
+      router.push('/login');
+    }
+  };
+
+  return (
+    <button
+      className="px-4 py-2 text-white bg-red-500 border rounded-md"
+      onClick={handleLogout}
+    >
+      LOGOUT
+    </button>
+  );
 }

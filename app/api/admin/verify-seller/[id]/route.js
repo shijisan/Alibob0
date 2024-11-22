@@ -11,12 +11,6 @@ export async function PATCH(req, { params }) {
          data: { isVerified: true },
       });
 
-      // Update user's role to SELLER
-      const user = await prisma.user.update({
-         where: { id: seller.userId },
-         data: { role: "SELLER" },
-      });
-
       return new NextResponse(JSON.stringify({ message: "Seller verified successfully" }), {
          status: 200,
          headers: {

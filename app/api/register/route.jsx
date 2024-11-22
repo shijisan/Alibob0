@@ -32,6 +32,15 @@ export async function POST(req) {
       },
     });
 
+    // Create the Buyer record if the user is a buyer
+    if (!isSeller) {
+      await prisma.buyer.create({
+        data: {
+          userId: newUser.id, // Link the buyer to the user
+        },
+      });
+    }
+
     // If the user is a seller, create the seller profile
     if (isSeller) {
       await prisma.seller.create({

@@ -1,4 +1,5 @@
 import SearchBar from "./SearchBar";
+import Cart from "./CartDropdown";
 
 export default function NavBar(){
     return(
@@ -12,7 +13,7 @@ export default function NavBar(){
             <ul className="inline-flex items-center w-1/2 justify-evenly">
                 <li><a href="/">Link</a></li>
                 <li><a href="/">Link</a></li>
-                <li><a href="/">Link</a></li>
+                <li><Cart/></li>
                 <li><a href="/account">Account</a></li>
             </ul>
         </nav>

@@ -9,11 +9,9 @@ export async function GET(req) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    // Decode the token to get userId
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
-    // Fetch the seller data based on the userId
     const seller = await prisma.seller.findUnique({
       where: { userId },
       select: {

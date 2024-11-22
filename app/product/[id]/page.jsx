@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-export default function ProductDetailsPage({ params }) {
+export default function ProductDetailsPage() {
 	const [product, setProduct] = useState(null);
 	const [error, setError] = useState("");
+	const [quantity, setQuantity] = useState(1);
 	const router = useRouter();
-	const [quantity, setQuantity] = useState(1); 
+	const params = useParams(); // Access dynamic route parameters
 
 	const handleChange = (e) => {
 		const value = parseInt(e.target.value, 10);
@@ -22,13 +23,40 @@ export default function ProductDetailsPage({ params }) {
 	};
 
 	const subtractQuantity = () => {
-		setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1)); 
+		setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
+	};
+
+	const addToCart = async () => {
+		if (!product) return;
+
+		try {
+			const res = await fetch("/api/cart", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("token")}`, // Include user token
+				},
+				body: JSON.stringify({
+					productId: product.id,
+					quantity,
+				}),
+			});
+
+			if (!res.ok) {
+				throw new Error("Failed to add to cart");
+			}
+
+			alert("Item added to cart!");
+		} catch (err) {
+			alert(`Error: ${err.message}`);
+		}
 	};
 
 	useEffect(() => {
 		const fetchProduct = async () => {
 			try {
-				const { id } = await params;
+				const { id } = params; // Use `useParams` to get the dynamic route parameter
+				if (!id) throw new Error("Product ID is missing");
 
 				const res = await fetch(`/api/product/${id}`);
 				if (!res.ok) {
@@ -68,58 +96,58 @@ export default function ProductDetailsPage({ params }) {
 	}
 
 	return (
-		<>
-			<section className="flex items-center justify-center min-h-screen gap-4 pt-[10vh]">
-				<div className="flex w-full">
-					<div className="flex flex-col items-center justify-center w-1/2 h-[90vh] p-10">
-						<div className="flex items-center justify-center border aspect-square">
-							<img
-								src={product.imageUrl}
-								alt={product.name}
-								height={300}
-								width={300}
-								className="object-cover"
-							/>
-						</div>
-					</div>
-					<div className="flex items-center w-1/2 p-5">
-						<div className="flex flex-col justify-center p-5 space-y-4 bg-white border shadow rounded-xl">
-							<h1 className="text-2xl font-semibold">{product.name}</h1>
-							<p className="text-lg font-semibold">
-								Price: <span className="font-normal">&#8369;</span>
-								{product.price.toFixed(2)}
-							</p>
-							<p className="text-lg">{product.description}</p>
-							<div className="flex">
-								<button
-									className="px-3 border border-black"
-									onClick={subtractQuantity}
-								>
-									-
-								</button>
-								<input
-									className="w-2/5 p-2 text-center border border-black rounded-none border-x-0 focus:outline-none"
-									onChange={handleChange}
-									value={quantity}
-									type="number"
-									min={1}
-									id="quantity"
-								/>
-								<button className="px-3 border border-black" onClick={addQuantity}>
-									+
-								</button>
-							</div>
-							<button className="w-1/2 p-2 transition-colors bg-blue-100 rounded hover:bg-blue-200 text-blue-950">
-								Add to Cart
-							</button>
-							<button className="w-1/2 p-2 transition-colors bg-pink-200 rounded hover:bg-pink-300 text-blue-950">
-								Buy Now
-							</button>
-						</div>
-
+		<section className="flex items-center justify-center min-h-screen gap-4 pt-[10vh]">
+			<div className="flex w-full">
+				<div className="flex flex-col items-center justify-center w-1/2 h-[90vh] p-10">
+					<div className="flex items-center justify-center border aspect-square">
+						<img
+							src={product.imageUrl}
+							alt={product.name}
+							height={300}
+							width={300}
+							className="object-cover"
+						/>
 					</div>
 				</div>
-			</section>
-		</>
+				<div className="flex items-center w-1/2 p-5">
+					<div className="flex flex-col justify-center p-5 space-y-4 bg-white border shadow rounded-xl">
+						<h1 className="text-2xl font-semibold">{product.name}</h1>
+						<p className="text-lg font-semibold">
+							Price: <span className="font-normal">&#8369;</span>
+							{product.price.toFixed(2)}
+						</p>
+						<p className="text-lg">{product.description}</p>
+						<div className="flex">
+							<button
+								className="px-3 border border-black"
+								onClick={subtractQuantity}
+							>
+								-
+							</button>
+							<input
+								className="w-2/5 p-2 text-center border border-black rounded-none border-x-0 focus:outline-none"
+								onChange={handleChange}
+								value={quantity}
+								type="number"
+								min={1}
+								id="quantity"
+							/>
+							<button className="px-3 border border-black" onClick={addQuantity}>
+								+
+							</button>
+						</div>
+						<button
+							className="w-1/2 p-2 transition-colors bg-blue-100 rounded hover:bg-blue-200 text-blue-950"
+							onClick={addToCart}
+						>
+							Add to Cart
+						</button>
+						<button className="w-1/2 p-2 transition-colors bg-pink-200 rounded hover:bg-pink-300 text-blue-950">
+							Buy Now
+						</button>
+					</div>
+				</div>
+			</div>
+		</section>
 	);
 }

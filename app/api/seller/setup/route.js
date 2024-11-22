@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 export async function POST(req) {
   const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
   }
 
   const token = authHeader.split(' ')[1];
@@ -19,7 +19,7 @@ export async function POST(req) {
     }
     userId = decoded.userId; // Extract the userId from the decoded token
   } catch (error) {
-    console.error('Invalid token:', error);
+    console.error('Token verification failed:', error);
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 
@@ -38,22 +38,31 @@ export async function POST(req) {
     });
 
     if (existingSeller) {
-      return NextResponse.json({ error: 'User already has a seller account' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'User already has a seller account' },
+        { status: 400 }
+      );
     }
 
-    // Create a new seller
+    // Create a new seller account
     const newSeller = await prisma.seller.create({
       data: {
         userId,
         shopName,
         shopDescription,
-        isVerified: false, // default to false; set later by admin
+        isVerified: false, // Default to not verified
       },
     });
 
-    return NextResponse.json(newSeller, { status: 201 });
+    // Update the user's role to 'SELLER'
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: 'SELLER' },
+    });
+
+    return NextResponse.json({ message: 'Seller account created successfully', seller: newSeller }, { status: 201 });
   } catch (error) {
     console.error('Error creating seller:', error);
-    return NextResponse.json({ error: 'Failed to create seller' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create seller account' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function AdminDashboardPage() {
    const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +28,10 @@ export default function AdminDashboardPage() {
 
    return (
       <>
-         <h1>Welcome to Admin Dashboard</h1>
+         <section className="flex flex-col items-center justify-center min-h-screen">
+            <h1>Welcome to Admin Dashboard</h1>
+            <LogoutButton/>
+         </section>
       </>
    );
 }

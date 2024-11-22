@@ -1,19 +1,38 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     image: null,
+    categoryId: "", // Added category field
   });
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [editProductId, setEditProductId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null); // Store user role
+  const router = useRouter(); // For redirection
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/categories");
+      if (!res.ok) {
+        throw new Error("Failed to fetch categories");
+      }
+
+      const data = await res.json();
+      setCategories(data.categories || []);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -34,11 +53,35 @@ export default function ProductsPage() {
     }
   };
 
+  const fetchUserRole = async () => {
+    try {
+      const res = await fetch("/api/buyer/account", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch user role");
+      }
+
+      const data = await res.json();
+      setUserRole(data.role);
+
+      if (data.role !== "SELLER") {
+        router.push("/"); // Redirect if not a seller
+      }
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(formData);
 
-    const { name, description, price, image } = formData;
-    if (!name || !description || !price || !image) {
+    const { name, description, price, image, categoryId } = formData;
+    if (!name || !description || !price || !categoryId) {
       setError("Please fill in all fields.");
       return;
     }
@@ -57,7 +100,12 @@ export default function ProductsPage() {
       formDataForServer.append("name", name);
       formDataForServer.append("description", description);
       formDataForServer.append("price", parsedPrice);
-      formDataForServer.append("image", image);
+      formDataForServer.append("categoryId", categoryId); // Include categoryId
+
+      // If there's an image (i.e., new image file selected), append it
+      if (image && image instanceof File) {
+        formDataForServer.append("image", image);
+      }
 
       const res = await fetch(url, {
         method,
@@ -71,7 +119,7 @@ export default function ProductsPage() {
         throw new Error(editMode ? "Failed to update product" : "Failed to add product");
       }
 
-      setFormData({ name: "", description: "", price: "", image: null });
+      setFormData({ name: "", description: "", price: "", image: null, categoryId: "" });
       setEditMode(false);
       setEditProductId(null);
       setIsModalOpen(false);
@@ -82,7 +130,13 @@ export default function ProductsPage() {
   };
 
   const editProduct = (product) => {
-    setFormData({ name: product.name, description: product.description, price: product.price, image: null });
+    setFormData({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image, // Set the existing image when editing
+      categoryId: product.categoryId, // Set the selected categoryId
+    });
     setEditMode(true);
     setEditProductId(product.id);
     setIsModalOpen(true);
@@ -111,16 +165,18 @@ export default function ProductsPage() {
 
   const openAddProductModal = () => {
     setEditMode(false);
-    setFormData({ name: "", description: "", price: "", image: null });
+    setFormData({ name: "", description: "", price: "", image: null, categoryId: "" });
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setFormData({ name: "", description: "", price: "", image: null });
+    setFormData({ name: "", description: "", price: "", image: null, categoryId: "" });
   };
 
   useEffect(() => {
+    fetchUserRole(); // Fetch user role on page load
+    fetchCategories(); // Fetch categories on page load
     fetchProducts();
   }, []);
 
@@ -163,8 +219,22 @@ export default function ProductsPage() {
                   type="file"
                   onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
                   className="p-2 border rounded"
-                  required
+                  required={!editMode} // Make required only when adding a new product
                 />
+                {/* Category Select */}
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="p-2 border rounded"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <button type="submit" className="px-4 py-2 mt-4 text-white bg-blue-600 rounded">
                 {editMode ? "Update Product" : "Add Product"}
@@ -177,43 +247,57 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <h2 className="mb-4 text-xl">Your Product List</h2>
-      <table className="min-w-full border-collapse">
+      <h2 className="mt-6 mb-4 text-lg font-semibold">Product List</h2>
+      <button onClick={openAddProductModal} className="px-4 py-2 text-white bg-green-600 rounded">
+        Add Product
+      </button>
+      <table className="min-w-full mt-4">
         <thead>
           <tr>
-            <th className="p-2 text-left border-b">Image</th>
-            <th className="p-2 text-left border-b">Product Name</th>
-            <th className="p-2 text-left border-b">Price</th>
-            <th className="p-2 text-left border-b">Actions</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td className="p-2 border-b">
-                <img src={product.imageUrl} alt={product.name} className="object-cover w-16 h-16" />
-              </td>
-              <td className="p-2 border-b">{product.name}</td>
-              <td className="p-2 border-b">${product.price}</td>
-              <td className="p-2 border-b">
-                <button onClick={() => editProduct(product)} className="text-blue-500">
-                  Edit
-                </button>
-                <button onClick={() => deleteProduct(product.id)} className="ml-4 text-red-500">
-                  Delete
-                </button>
+          {products.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="text-center">
+                No products available.
               </td>
             </tr>
-          ))}
+          ) : (
+            products.map((product) => (
+              <tr key={product.id}>
+                <td>
+                  <img src={product.imageUrl} alt={product.name} width="100" height="100" />
+                </td>
+                <td>{product.name}</td>
+                <td>{product.description}</td>
+                <td>${product.price}</td>
+                <td>{product.category?.name}</td>
+                <td>
+                  <button
+                    onClick={() => editProduct(product)}
+                    className="px-4 py-2 text-white bg-blue-600 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteProduct(product.id)}
+                    className="px-4 py-2 ml-2 text-white bg-red-600 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
-
-      <button
-        onClick={openAddProductModal}
-        className="px-6 py-2 mt-4 text-white bg-green-600 rounded"
-      >
-        Add New Product
-      </button>
     </div>
   );
 }
