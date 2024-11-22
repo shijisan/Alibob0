@@ -20,15 +20,16 @@ export default function SellerAccount() {
 
     const fetchUserData = async () => {
       try {
-        const res = await fetch("/api/buyer/account", {  // Fetching from the /api/buyer/account endpoint
+        // First, fetch user data from /api/buyer/account
+        const resAccount = await fetch("/api/buyer/account", {  
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,  // Passing the token as Bearer token
+            Authorization: `Bearer ${token}`,
           },
         });
 
-        if (res.ok) {
-          const data = await res.json();
+        if (resAccount.ok) {
+          const data = await resAccount.json();
           console.log("User data fetched:", data);
 
           // Handle role and isVerified logic
@@ -38,22 +39,36 @@ export default function SellerAccount() {
             return;
           }
 
-          if (data.role === "SELLER" && !data.seller?.isVerified) {
-            console.log("Case: Seller, isVerified = false. Redirecting to /seller/setup.");
-            router.push("/seller/setup");
-            return;
-          }
+          if (data.role === "SELLER") {
+            // Fetch seller verification status from /api/seller
+            const resSeller = await fetch("/api/seller", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
 
-          if (data.role === "SELLER" && data.seller?.isVerified) {
-            console.log("Case: Seller, isVerified = true. Access granted.");
-            setUser(data);  // Set the user data here, since it's the user data now
-          } else {
-            console.log("Case: Access denied. Unexpected role or status.");
-            setError("Access denied.");
+            if (!resSeller.ok) {
+              const sellerData = await resSeller.json();
+              setError(sellerData.error || "Failed to fetch seller data");
+              return;
+            }
+
+            const sellerData = await resSeller.json();
+            console.log("Seller data fetched:", sellerData);
+
+            if (sellerData.isVerified) {
+              console.log("Case: Seller, isVerified = true. Access granted.");
+              setUser(data);  // Set the user data here, since it's the user data now
+            } else {
+              console.log("Case: Seller, isVerified = false. Redirecting to /seller/setup.");
+              router.push("/seller/setup");
+              return;
+            }
           }
         } else {
-          const data = await res.json();
-          console.log("Error response from API:", data);
+          const data = await resAccount.json();
+          console.log("Error response from /api/buyer/account:", data);
           setError(data.message || "An error occurred while fetching user data.");
         }
       } catch (err) {
