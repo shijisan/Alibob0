@@ -17,7 +17,7 @@ export default function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex w-1/2">
+    <form onSubmit={handleSearch} className="flex w-full md:w-1/2">
       <input
         className="w-11/12 px-4 py-1 font-normal border rounded-s focus:outline-none"
         type="text"

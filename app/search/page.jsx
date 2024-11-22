@@ -8,15 +8,30 @@ export default function SearchPage() {
 	const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
 	const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
 	const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+	const [category, setCategory] = useState(searchParams.get("category") || "");
+	const [categories, setCategories] = useState([]);
 	const [products, setProducts] = useState([]);
 	const [error, setError] = useState("");
 
+	// Fetch categories
+	const fetchCategories = async () => {
+		try {
+			const res = await fetch("/api/categories");
+			const data = await res.json();
+			setCategories(data.categories);
+		} catch (err) {
+			setError("Failed to fetch categories.");
+		}
+	};
+
+	// Fetch products based on query parameters
 	const fetchProducts = async () => {
 		try {
 			const query = new URLSearchParams({
 				...(searchQuery && { search: searchQuery }),
 				...(minPrice && { minPrice }),
 				...(maxPrice && { maxPrice }),
+				...(category && { category }),
 			}).toString();
 
 			const res = await fetch(`/api/products/search?${query}`);
@@ -41,8 +56,9 @@ export default function SearchPage() {
 	};
 
 	useEffect(() => {
+		fetchCategories();
 		fetchProducts();
-	}, [JSON.stringify({ searchQuery, minPrice, maxPrice })]); // Dependency stabilized
+	}, [searchQuery, minPrice, maxPrice, category]);
 
 	const handleRefineSearch = (e) => {
 		e.preventDefault();
@@ -51,6 +67,7 @@ export default function SearchPage() {
 			...(searchQuery && { search: searchQuery }),
 			...(minPrice && { minPrice }),
 			...(maxPrice && { maxPrice }),
+			...(category && { category }),
 		}).toString();
 
 		window.location.search = query; // Trigger a navigation to refresh the query
@@ -85,6 +102,19 @@ export default function SearchPage() {
 					onChange={(e) => setMaxPrice(e.target.value)}
 					className="p-2 border rounded"
 				/>
+				{/* Category Filter */}
+				<select
+					value={category}
+					onChange={(e) => setCategory(e.target.value)}
+					className="p-2 border rounded"
+				>
+					<option value="">All Categories</option>
+					{categories.map((cat) => (
+						<option key={cat.id} value={cat.name}>
+							{cat.name}
+						</option>
+					))}
+				</select>
 				<button
 					type="submit"
 					className="col-span-4 p-2 text-white bg-blue-500 rounded"

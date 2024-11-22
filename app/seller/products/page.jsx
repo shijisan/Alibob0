@@ -68,8 +68,8 @@ export default function ProductsPage() {
       const data = await res.json();
       setUserRole(data.role);
 
-      if (data.role !== "SELLER") {
-        router.push("/"); // Redirect if not a seller
+      if (data.role !== "SELLER" || !data.seller?.isVerified) {
+        router.push("/seller/setup"); // Redirect if not a seller
       }
     } catch (error) {
       setError(error.message);

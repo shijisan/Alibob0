@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
-    const { search, minPrice, maxPrice } = Object.fromEntries(
+    const { search, minPrice, maxPrice, category } = Object.fromEntries(
       new URL(req.url).searchParams.entries()
     );
 
@@ -20,6 +20,9 @@ export async function GET(req) {
             : {},
           minPrice ? { price: { gte: parseFloat(minPrice) } } : {},
           maxPrice ? { price: { lte: parseFloat(maxPrice) } } : {},
+          category
+            ? { category: { name: { contains: category, mode: "insensitive" } } }
+            : {},
         ],
       },
     });

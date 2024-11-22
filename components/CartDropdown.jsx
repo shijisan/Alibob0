@@ -65,7 +65,7 @@ const CartDropdown = () => {
   return (
     <div className="relative">
       {/* Cart Button */}
-      <button onClick={toggleDropdown} className="p-2 text-white bg-blue-500 rounded">
+      <button onClick={toggleDropdown} className="p-2 rounded text-blue-950">
         Cart
       </button>
 
