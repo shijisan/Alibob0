@@ -33,7 +33,7 @@ export default function NavBar() {
                     className={`md:hidden ${menuOpen ? "flex" : "hidden"} flex-col items-center absolute top-[10vh] left-0 w-full bg-gradient-to-b from-blue-100 to-pink-300 z-20`}
                 >
                     <ul className="w-full text-center bg-pink-300 md:bg-transparent">
-                        <li><a href="/" className="block py-2">Link</a></li>
+                        <li><a href="/" className="block py-2">Home</a></li>
                         <li><a href="/seller/setup" className="block py-2">Seller</a></li>
                         <li><Cart /></li>
                         <li><a href="/account" className="block py-2">Account</a></li>
@@ -42,7 +42,7 @@ export default function NavBar() {
 
                 {/* Desktop Menu: Keep it as is, visible on larger screens */}
                 <ul className="items-center hidden w-1/4 md:w-1/2 md:inline-flex justify-evenly">
-                    <li><a href="/">Link</a></li>
+                    <li><a href="/">Home</a></li>
                     <li><a href="/seller/setup">Seller</a></li>
                     <li><Cart /></li>
                     <li><a href="/account">Account</a></li>
