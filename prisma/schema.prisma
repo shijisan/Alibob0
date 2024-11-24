@@ -18,6 +18,7 @@ model User {
   buyer     Buyer?   @relation("UserToBuyer")
   seller    Seller?  @relation("UserToSeller")
   cart      Cart?    @relation("UserToCart")
+  orders    Order[]  @relation("UserToOrders") // Added relation to orders
 }
 
 model Buyer {
@@ -56,21 +57,6 @@ model Category {
   products  Product[] @relation("CategoryToProducts")
 }
 
-model Product {
-  id          String     @id @default(uuid())
-  sellerId    String
-  seller      Seller      @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade)
-  categoryId  String
-  category    Category    @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
-  name        String
-  description String
-  price       Float
-  imageUrl    String?     // Optional image URL
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  cartItems   CartItem[]  @relation("ProductToCartItems")
-}
 
 model Cart {
   id        String      @id @default(uuid())
@@ -93,8 +79,62 @@ model CartItem {
   @@unique([cartId, productId]) // Ensure one product per cart
 }
 
+
 enum Role {
   BUYER
   SELLER
   ADMIN
+}
+
+model Order {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation("UserToOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items         OrderItem[] @relation("OrderToOrderItems")  // Add the @relation directive
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  province      String
+  postalCode    String
+  country       String
+  status        OrderStatus @default(COORDINATING_WITH_SHIPPING)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation("OrderToOrderItems", fields: [orderId], references: [id], onDelete: Cascade)  // Reverse relation to Order
+  productId String
+  product   Product  @relation("ProductToOrderItems", fields: [productId], references: [id], onDelete: Cascade)  // Reverse relation to Product
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String     @id @default(uuid())
+  sellerId    String
+  seller      Seller     @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category   @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  price       Float
+  imageUrl    String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  cartItems   CartItem[] @relation("ProductToCartItems")
+  orderItems  OrderItem[] @relation("ProductToOrderItems")  // Add the reverse relation here
+}
+
+enum OrderStatus {
+  COORDINATING_WITH_SHIPPING
+  SHIPPING
+  ON_THE_WAY
+  COMPLETED
+  CANCELED
 }

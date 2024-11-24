@@ -15,13 +15,13 @@ export default function HeroCarousel() {
       loop={true}
     >
       <SwiperSlide>
-        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[50vh] w-full object-cover" alt="Image 1" />
+        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[40vh] w-full object-cover" alt="Image 1" />
       </SwiperSlide>
       <SwiperSlide>
-        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[50vh] w-full  object-cover" alt="Image 2" />
+        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[40vh] w-full  object-cover" alt="Image 2" />
       </SwiperSlide>
       <SwiperSlide>
-        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[50vh] w-full  object-cover" alt="Image 3" />
+        <img src="https://placehold.co/500x500" className="lg:h-[20vh] h-[40vh] w-full  object-cover" alt="Image 3" />
       </SwiperSlide>
     </Swiper>
   );

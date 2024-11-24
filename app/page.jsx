@@ -59,7 +59,7 @@ export default function HomePage() {
 						</div>
 
 						{/* Display categories */}
-						<div className="grid items-center h-full grid-cols-4 gap-4 mt-4">
+						<div className="grid items-center h-full gap-4 mt-4 lg:gap-2 lg:grid-cols-4 md:grid-cols-2 grid-col-1">
 							{categories.length > 0 ? (
 								categories.map((category) => (
 									<a
@@ -78,7 +78,15 @@ export default function HomePage() {
 						</div>
 
 					</div>
-					<div className="z-10 w-full h-full p-5 bg-white rounded shadow lg:w-4/6 md:w-1/2"></div>
+					<div className="z-10 w-full h-full p-5 bg-white rounded shadow lg:w-4/6 md:w-1/2">
+						<div className="flex items-center justify-between pb-4 border-b">
+							<h3>Promotions</h3>
+						</div>
+						<div className="grid items-center grid-cols-2 gap-4 mt-4 lg:grid-cols-4 md:grid-cols-3">
+							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">Feature 1</div>
+							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">Feature 2</div>
+						</div>
+					</div>
 				</section>
 
 				<section className="min-h-screen p-5 mt-4 bg-white rounded shadow">
@@ -87,7 +95,7 @@ export default function HomePage() {
 					{error ? (
 						<p className="text-red-500">{error}</p>
 					) : products.length > 0 ? (
-						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+						<div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
 							{products.map((product) => (
 								<a
 									href={`/product/${product.id}`}
@@ -103,7 +111,7 @@ export default function HomePage() {
 											width={250}
 										/>
 										<h4 className="text-lg font-semibold">{product.name}</h4>
-										<p className="mb-1 text-sm text-gray-500">
+										<p className="h-4 mb-1 text-sm text-gray-500 truncate">
 											{product.description}
 										</p>
 										<p className="font-bold text-blue-700">${product.price}</p>

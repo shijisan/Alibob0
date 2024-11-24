@@ -1,17 +1,29 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const CartPage = () => {
    const [cartItems, setCartItems] = useState([]);
    const [selectedItems, setSelectedItems] = useState([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState(null);
+   const [isAuthorized, setIsAuthorized] = useState(false); // New state for authorization
+   const router = useRouter();
 
    useEffect(() => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+         router.push("/login");
+         return; // Ensure the effect stops execution here
+      }
+
+      setIsAuthorized(true); // User is authorized, allow rendering the page
+
       const fetchCartItems = async () => {
          try {
             const response = await fetch("/api/cart", {
-               headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+               headers: { Authorization: `Bearer ${token}` },
             });
 
             if (response.ok) {
@@ -19,6 +31,9 @@ const CartPage = () => {
                setCartItems(data.cartItems);
             } else {
                console.error("Failed to fetch cart items");
+               setError("Failed to load cart items.");
+               router.push("/login");
+
             }
          } catch (err) {
             console.error("Error fetching cart items:", err);
@@ -29,7 +44,7 @@ const CartPage = () => {
       };
 
       fetchCartItems();
-   }, []);
+   }, [router]);
 
    const handleSelectItem = (id) => {
       setSelectedItems((prevSelected) =>
@@ -43,8 +58,25 @@ const CartPage = () => {
       return cartItems
          .filter((item) => selectedItems.includes(item.id))
          .reduce((sum, item) => sum + item.price * item.quantity, 0)
-         .toFixed(2); // Keep 2 decimal places
+         .toFixed(2);
    };
+
+   const handleProceedToCheckout = () => {
+      if (selectedItems.length > 0) {
+         const selectedCartItems = cartItems.filter((item) => selectedItems.includes(item.id));
+
+         const selectedItemsString = encodeURIComponent(JSON.stringify(selectedCartItems));
+
+         router.push({
+            pathname: "/checkout",
+            query: { items: selectedItemsString },
+         });
+      } else {
+         alert("Please select at least one item to purchase.");
+      }
+   };
+
+   if (!isAuthorized) return null; // Avoid rendering the component until authorized
 
    if (loading) return <div>Loading...</div>;
    if (error) return <div className="error">{error}</div>;
@@ -81,23 +113,13 @@ const CartPage = () => {
                   </ul>
                   <div className="flex items-center justify-between mb-4">
                      <h2 className="text-xl font-semibold">Total:</h2>
-                     <p className="text-xl font-bold text-gray-800">
-                        ${calculateTotal()}
-                     </p>
+                     <p className="text-xl font-bold text-gray-800">${calculateTotal()}</p>
                   </div>
                   <button
-                     onClick={() => {
-                        if (selectedItems.length > 0) {
-                           alert(
-                              `Purchasing items with a total of $${calculateTotal()}...`
-                           );
-                        } else {
-                           alert("Please select at least one item to purchase.");
-                        }
-                     }}
+                     onClick={handleProceedToCheckout}
                      className="px-4 py-2 text-white transition-colors rounded bg-blue-950 hover:bg-blue-900"
                   >
-                     Purchase
+                     Proceed to Checkout
                   </button>
                </>
             )}

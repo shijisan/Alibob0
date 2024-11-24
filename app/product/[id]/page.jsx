@@ -138,19 +138,17 @@ export default function ProductDetailsPage() {
 
   return (
     <section className="flex items-center justify-center min-h-screen gap-4 pt-[10vh]">
-      <div className="flex w-full">
-        <div className="flex flex-col items-center justify-center w-1/2 h-[90vh] p-10">
+      <div className="flex flex-col w-full lg:flex-row">
+        <div className="flex flex-col items-center justify-center lg:w-1/2 w-full lg:h-[90vh] p-10">
           <div className="flex items-center justify-center border aspect-square">
             <img
               src={product.imageUrl}
               alt={product.name}
-              height={300}
-              width={300}
-              className="object-cover"
+              className="lg:h-[300px] aspect-square"
             />
           </div>
         </div>
-        <div className="flex items-center w-1/2 p-5">
+        <div className="flex items-center justify-center w-full p-5 lg:w-1/2">
           <div className="flex flex-col justify-center p-5 space-y-4 bg-white border shadow rounded-xl">
             <h1 className="text-2xl font-semibold">{product.name}</h1>
             <p className="text-lg font-semibold">
