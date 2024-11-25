@@ -106,9 +106,7 @@ export default function HomePage() {
 										<img
 											src={product.imageUrl}
 											alt={product.name}
-											className="object-cover w-full h-auto mb-2 bg-white border rounded aspect-square"
-											height={250}
-											width={250}
+											className="object-cover w-full mb-2 bg-white border rounded h-60 aspect-square"
 										/>
 										<h4 className="text-lg font-semibold">{product.name}</h4>
 										<p className="h-6 mb-1 text-sm text-gray-500 truncate">
