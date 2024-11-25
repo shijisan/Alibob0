@@ -39,30 +39,32 @@ const ShopPage = () => {
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
   return (
-    <div className="px-4 py-8 mx-auto max-w-7xl">
-      <h1 className="mb-4 text-4xl font-semibold">{seller.shopName}</h1>
-      <p className="mb-6 text-lg text-gray-700">{seller.shopDescription}</p>
-      <p className="mb-8 font-medium text-gray-600 text-md">Total Products: {productCount}</p>
+    <section className="w-full min-h-screen pt-[10vh]">
+      <section className="p-5">
+        <h1 className="mb-4 text-4xl font-semibold">{seller.shopName}</h1>
+        <p className="mb-6 text-lg text-gray-700">{seller.shopDescription}</p>
+        <p className="mb-8 font-medium text-gray-600 text-md">Total Products: {productCount}</p>
+      </section>
 
-      <div>
+      <section className="p-5">
         <h2 className="mb-6 text-2xl font-semibold">Products</h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {seller.products.length === 0 ? (
-            <p className="text-center text-gray-500 col-span-full">No products available</p>
+            <p className="h-6 text-center text-gray-500 col-span-full">No products available</p>
           ) : (
             seller.products.map((product) => (
               <div key={product.id} className="p-4 transition-shadow duration-300 bg-white rounded-lg shadow-md hover:shadow-lg">
                 <Link href={`/product/${product.id}`}>
                   <div>
                     <img
-                      src={product.imageUrl || "/placeholder.jpg"} // Add a placeholder if the image URL is missing
+                      src={product.imageUrl} // Add a placeholder if the image URL is missing
                       alt={product.name}
-                      className="object-cover w-full mb-4 rounded-md h-60"
+                      className="object-cover w-auto mb-4 rounded-md h-60 aspect-square"
                       height={250}
                       width={250}
                     />
                     <h3 className="mb-2 text-xl font-semibold text-gray-800">{product.name}</h3>
-                    <p className="mb-4 text-gray-600">{product.description}</p>
+                    <p className="h-6 mb-4 text-gray-600 truncate">{product.description}</p>
                     <p className="mb-4 text-lg font-bold text-gray-900">Price: ${product.price}</p>
                   </div>
                 </Link>
@@ -70,8 +72,8 @@ const ShopPage = () => {
             ))
           )}
         </div>
-      </div>
-    </div>
+      </section>
+    </section>
   );
 };
 
