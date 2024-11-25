@@ -21,7 +21,7 @@ export async function GET(req) {
           minPrice ? { price: { gte: parseFloat(minPrice) } } : {},
           maxPrice ? { price: { lte: parseFloat(maxPrice) } } : {},
           category
-            ? { category: { name: { contains: category, mode: "insensitive" } } }
+            ? { category: { name: { equals: category, mode: "insensitive" } } }
             : {},
         ],
       },

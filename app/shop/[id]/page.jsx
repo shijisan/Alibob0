@@ -63,7 +63,7 @@ const ShopPage = () => {
                       height={250}
                       width={250}
                     />
-                    <h3 className="mb-2 text-xl font-semibold text-gray-800">{product.name}</h3>
+                    <h3 className="h-8 mb-2 text-xl font-semibold text-gray-800 truncate">{product.name}</h3>
                     <p className="h-6 mb-4 text-gray-600 truncate">{product.description}</p>
                     <p className="mb-4 text-lg font-bold text-gray-900">Price: ${product.price}</p>
                   </div>

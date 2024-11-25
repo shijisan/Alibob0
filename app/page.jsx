@@ -95,7 +95,7 @@ export default function HomePage() {
 					{error ? (
 						<p className="text-red-500">{error}</p>
 					) : products.length > 0 ? (
-						<div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+						<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
 							{products.map((product) => (
 								<a
 									href={`/product/${product.id}`}
@@ -108,7 +108,7 @@ export default function HomePage() {
 											alt={product.name}
 											className="object-cover w-full mb-2 bg-white border rounded h-60 aspect-square"
 										/>
-										<h4 className="text-lg font-semibold">{product.name}</h4>
+										<h4 className="h-8 text-lg font-semibold truncate">{product.name}</h4>
 										<p className="h-6 mb-1 text-sm text-gray-500 truncate">
 											{product.description}
 										</p>

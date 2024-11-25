@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -11,14 +12,15 @@ export default function ProductsPage() {
     description: "",
     price: "",
     image: null,
-    categoryId: "", // Added category field
+    categoryId: "", 
   });
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [editProductId, setEditProductId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null); // Store user role
-  const router = useRouter(); // For redirection
+  const [userRole, setUserRole] = useState(null); 
+  const router = useRouter(); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -60,14 +62,14 @@ export default function ProductsPage() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       if (!res.ok) {
         throw new Error("Failed to fetch user role");
       }
-  
+
       const data = await res.json();
       setUserRole(data.role);
-  
+
       if (data.role === "SELLER") {
         // Fetch seller data to check if they are verified
         const sellerRes = await fetch("/api/seller", {
@@ -75,11 +77,11 @@ export default function ProductsPage() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-  
+
         if (!sellerRes.ok) {
           throw new Error("Failed to fetch seller data");
         }
-  
+
         const sellerData = await sellerRes.json();
         if (!sellerData.isVerified) {
           router.push("/seller/setup"); // Redirect if seller is not verified
@@ -91,21 +93,26 @@ export default function ProductsPage() {
       setError(error.message);
     }
   };
-  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
 
+    if (isSubmitting) return; 
+    setIsSubmitting(true); 
+
     const { name, description, price, image, categoryId } = formData;
     if (!name || !description || !price || !categoryId) {
       setError("Please fill in all fields.");
+      setIsSubmitting(false); 
       return;
     }
 
     const parsedPrice = parseFloat(price);
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
       setError("Please enter a valid price.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -117,9 +124,8 @@ export default function ProductsPage() {
       formDataForServer.append("name", name);
       formDataForServer.append("description", description);
       formDataForServer.append("price", parsedPrice);
-      formDataForServer.append("categoryId", categoryId); // Include categoryId
+      formDataForServer.append("categoryId", categoryId); 
 
-      // If there's an image (i.e., new image file selected), append it
       if (image && image instanceof File) {
         formDataForServer.append("image", image);
       }
@@ -151,8 +157,8 @@ export default function ProductsPage() {
       name: product.name,
       description: product.description,
       price: product.price,
-      image: product.image, // Set the existing image when editing
-      categoryId: product.categoryId, // Set the selected categoryId
+      image: product.image, 
+      categoryId: product.categoryId, 
     });
     setEditMode(true);
     setEditProductId(product.id);
@@ -192,10 +198,14 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    fetchUserRole(); // Fetch user role on page load
-    fetchCategories(); // Fetch categories on page load
+    fetchUserRole(); 
+    fetchCategories(); 
     fetchProducts();
   }, []);
+
+  if (isSubmitting){
+    return LoadingSpinner;
+  };
 
   return (
     <div className="p-6">
@@ -217,14 +227,6 @@ export default function ProductsPage() {
                   required
                 />
                 <input
-                  type="text"
-                  placeholder="Product Description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="p-2 border rounded"
-                  required
-                />
-                <input
                   type="number"
                   placeholder="Price"
                   value={formData.price}
@@ -236,9 +238,8 @@ export default function ProductsPage() {
                   type="file"
                   onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
                   className="p-2 border rounded"
-                  required={!editMode} // Make required only when adding a new product
+                  required={!editMode} 
                 />
-                {/* Category Select */}
                 <select
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
@@ -252,7 +253,19 @@ export default function ProductsPage() {
                     </option>
                   ))}
                 </select>
+
               </div>
+
+              <div className="w-full mt-4">
+                <textarea
+                  placeholder="Product Description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+
               <button type="submit" className="px-4 py-2 mt-4 text-white bg-blue-600 rounded">
                 {editMode ? "Update Product" : "Add Product"}
               </button>
