@@ -111,7 +111,7 @@ export default function HomePage() {
 											width={250}
 										/>
 										<h4 className="text-lg font-semibold">{product.name}</h4>
-										<p className="h-4 mb-1 text-sm text-gray-500 truncate">
+										<p className="h-6 mb-1 text-sm text-gray-500 truncate">
 											{product.description}
 										</p>
 										<p className="font-bold text-blue-700">${product.price}</p>

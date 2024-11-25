@@ -7,7 +7,7 @@ const CartPage = () => {
    const [selectedItems, setSelectedItems] = useState([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState(null);
-   const [isAuthorized, setIsAuthorized] = useState(false); // New state for authorization
+   const [isAuthorized, setIsAuthorized] = useState(false);
    const router = useRouter();
 
    useEffect(() => {
@@ -15,10 +15,10 @@ const CartPage = () => {
 
       if (!token) {
          router.push("/login");
-         return; // Ensure the effect stops execution here
+         return;
       }
 
-      setIsAuthorized(true); // User is authorized, allow rendering the page
+      setIsAuthorized(true);
 
       const fetchCartItems = async () => {
          try {
@@ -33,7 +33,6 @@ const CartPage = () => {
                console.error("Failed to fetch cart items");
                setError("Failed to load cart items.");
                router.push("/login");
-
             }
          } catch (err) {
             console.error("Error fetching cart items:", err);
@@ -65,18 +64,16 @@ const CartPage = () => {
       if (selectedItems.length > 0) {
          const selectedCartItems = cartItems.filter((item) => selectedItems.includes(item.id));
 
-         const selectedItemsString = encodeURIComponent(JSON.stringify(selectedCartItems));
+         // Save to session storage
+         sessionStorage.setItem("checkoutItems", JSON.stringify(selectedCartItems));
 
-         router.push({
-            pathname: "/checkout",
-            query: { items: selectedItemsString },
-         });
+         router.push("/checkout");
       } else {
          alert("Please select at least one item to purchase.");
       }
    };
 
-   if (!isAuthorized) return null; // Avoid rendering the component until authorized
+   if (!isAuthorized) return null;
 
    if (loading) return <div>Loading...</div>;
    if (error) return <div className="error">{error}</div>;
