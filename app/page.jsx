@@ -59,7 +59,7 @@ export default function HomePage() {
 						</div>
 
 						{/* Display categories */}
-						<div className="grid items-center h-full gap-4 mt-4 lg:gap-2 lg:grid-cols-4 md:grid-cols-2 grid-col-1">
+						<div className="grid items-center h-full grid-cols-1 gap-4 mt-4 lg:gap-2 lg:grid-cols-4 md:grid-cols-2">
 							{categories.length > 0 ? (
 								categories.map((category) => (
 									<a
@@ -95,7 +95,7 @@ export default function HomePage() {
 					{error ? (
 						<p className="text-red-500">{error}</p>
 					) : products.length > 0 ? (
-						<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
 							{products.map((product) => (
 								<a
 									href={`/product/${product.id}`}

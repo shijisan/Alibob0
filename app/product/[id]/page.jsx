@@ -202,7 +202,7 @@ export default function ProductDetailsPage() {
         </div>
       </section>
       <section className="flex items-center justify-center h-[10vh] p-10 w-full">
-        <div className="flex w-full p-5 px-4 border rounded-lg shadow text-blue-950 border-e">
+        <div className="flex flex-col w-full p-5 px-4 border rounded-lg shadow lg:flex-row text-blue-950 border-e">
           <div className="flex items-center justify-center me-4">
             <img
               className="rounded-full me-2"
@@ -217,7 +217,7 @@ export default function ProductDetailsPage() {
               Visit Shop
             </a>
           </div>
-          <div className="inline-flex items-center px-4 space-x-4 border-s">
+          <div className="flex flex-col mt-4 space-y-4 lg:px-4 lg:mt-0 lg:space-x-4 lg:space-y-0 lg:items-center lg:flex-row border-s">
             <p className="">Products: {shopInfo.productCount}</p>
             <p className="">Ratings: {shopInfo.rating || "Undefined"}</p>
           </div>
