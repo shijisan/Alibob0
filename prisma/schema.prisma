@@ -18,7 +18,8 @@ model User {
   buyer     Buyer?   @relation("UserToBuyer")
   seller    Seller?  @relation("UserToSeller")
   cart      Cart?    @relation("UserToCart")
-  orders    Order[]  @relation("UserToOrders") // Added relation to orders
+  orders    Order[]  @relation("UserToOrders")
+  isDeleted Boolean  @default(false)
 }
 
 model Buyer {
@@ -27,6 +28,7 @@ model Buyer {
   user      User     @relation("UserToBuyer", fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
 }
 
 model Seller {
@@ -39,6 +41,7 @@ model Seller {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   products        Product[] @relation("SellerToProducts")
+  isDeleted       Boolean   @default(false)
 }
 
 model Admin {
@@ -50,13 +53,16 @@ model Admin {
 }
 
 model Category {
-  id        String    @id @default(uuid())
-  name      String    @unique @db.VarChar(100)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[] @relation("CategoryToProducts")
+  id        String     @id @default(uuid())
+  name      String     @unique @db.VarChar(100)
+  parentId  String?    @db.VarChar(36) // Support hierarchical categories
+  parent    Category?  @relation("ParentToChild", fields: [parentId], references: [id])
+  children  Category[] @relation("ParentToChild")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  products  Product[]  @relation("CategoryToProducts")
+  isDeleted Boolean    @default(false)
 }
-
 
 model Cart {
   id        String      @id @default(uuid())
@@ -65,6 +71,7 @@ model Cart {
   items     CartItem[]  @relation("CartToCartItems")
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  isDeleted Boolean     @default(false)
 }
 
 model CartItem {
@@ -76,9 +83,8 @@ model CartItem {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([cartId, productId]) // Ensure one product per cart
+  @@unique([cartId, productId])
 }
-
 
 enum Role {
   BUYER
@@ -87,27 +93,30 @@ enum Role {
 }
 
 model Order {
-  id            String     @id @default(uuid())
+  id            String      @id @default(uuid())
   userId        String
-  user          User       @relation("UserToOrders", fields: [userId], references: [id], onDelete: Cascade)
-  items         OrderItem[] @relation("OrderToOrderItems")  // Add the @relation directive
+  user          User        @relation("UserToOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items         OrderItem[] @relation("OrderToOrderItems")
   addressLine1  String
   addressLine2  String?
   city          String
   province      String
   postalCode    String
   country       String
-  status        OrderStatus @default(COORDINATING_WITH_SHIPPING)
+  status        OrderStatus @default(coordinating_with_shipping)
+  paymentStatus PaymentStatus @default(pending)
+  totalAmount   Float       @default(0.0) // Added to store order total
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  isDeleted     Boolean     @default(false)
 }
 
 model OrderItem {
   id        String   @id @default(uuid())
   orderId   String
-  order     Order    @relation("OrderToOrderItems", fields: [orderId], references: [id], onDelete: Cascade)  // Reverse relation to Order
+  order     Order    @relation("OrderToOrderItems", fields: [orderId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation("ProductToOrderItems", fields: [productId], references: [id], onDelete: Cascade)  // Reverse relation to Product
+  product   Product  @relation("ProductToOrderItems", fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int      @default(1)
   price     Float
   createdAt DateTime @default(now())
@@ -115,26 +124,33 @@ model OrderItem {
 }
 
 model Product {
-  id          String     @id @default(uuid())
+  id          String      @id @default(uuid())
   sellerId    String
-  seller      Seller     @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+  seller      Seller      @relation("SellerToProducts", fields: [sellerId], references: [id], onDelete: Cascade)
   categoryId  String
-  category    Category   @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
+  category    Category    @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
   name        String
   description String
   price       Float
   imageUrl    String?
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  cartItems   CartItem[] @relation("ProductToCartItems")
-  orderItems  OrderItem[] @relation("ProductToOrderItems")  // Add the reverse relation here
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   CartItem[]  @relation("ProductToCartItems")
+  orderItems  OrderItem[] @relation("ProductToOrderItems")
+  isDeleted   Boolean     @default(false)
 }
 
 enum OrderStatus {
-  COORDINATING_WITH_SHIPPING
-  SHIPPING
-  ON_THE_WAY
-  COMPLETED
-  CANCELED
+  coordinating_with_shipping
+  shipping
+  on_the_way
+  completed
+  canceled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
 }

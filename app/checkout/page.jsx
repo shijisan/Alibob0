@@ -28,6 +28,7 @@ const CheckoutPage = () => {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [shippingCost, setShippingCost] = useState(undefined);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,8 +38,17 @@ const CheckoutPage = () => {
 
     if (items) {
       try {
-        const parsedItems = JSON.parse(decodeURIComponent(items));
-        setCartItems(parsedItems);
+        const decodedItems = decodeURIComponent(items);
+        const parsedItems = JSON.parse(decodedItems);
+
+        if (Array.isArray(parsedItems)) {
+          setCartItems(parsedItems);
+
+          router.replace("/checkout");
+
+        } else {
+          throw new Error("Invalid items format");
+        }
       } catch (err) {
         console.error("Failed to parse cart items:", err);
         setError("Invalid cart items. Please try again.");
@@ -51,17 +61,22 @@ const CheckoutPage = () => {
     setAddress((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleCheckout = async () => {
-    const { province, city, postalCode, addressLine1 } = address;
+  const calculateTotalPrice = () => {
+    const itemsTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return itemsTotal + (shippingCost ?? 0);
+  };
 
-    if (!province || !city || !postalCode || !addressLine1) {
+  const handleCheckout = async () => {
+    const { province, city, postalCode, addressLine1, addressLine2, country } = address;
+  
+    if (!province || !city || !postalCode || !addressLine1 || !country) {
       setError("Please fill out all required fields.");
       return;
     }
-
+  
     setIsSubmitting(true);
     setError(null);
-
+  
     try {
       const response = await fetch("/api/checkout", {
         method: "POST",
@@ -69,9 +84,17 @@ const CheckoutPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ address, cartItems }),
+        body: JSON.stringify({
+          items: cartItems,
+          addressLine1,
+          addressLine2,
+          city,
+          province,
+          postalCode,
+          country,
+        }),
       });
-
+  
       if (response.ok) {
         alert("Order placed successfully!");
         router.push("/order-success");
@@ -88,13 +111,28 @@ const CheckoutPage = () => {
     }
   };
 
+  if (cartItems.length === 0 && !error) {
+    return <div>Loading selected items...</div>;
+  }
+
   return (
     <section className="min-h-screen pt-[11vh] p-4 flex justify-center">
       <div className="container w-2/3 p-4 mx-auto bg-white border rounded-lg shadow">
         <h1 className="mb-4 text-2xl font-bold">Checkout</h1>
         {error && <div className="text-red-500 error">{error}</div>}
 
-        {/* Address Form */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold">Products</h2>
+          <ul className="mt-2 space-y-4">
+            {cartItems.map((item) => (
+              <li key={item.id} className="flex items-center justify-between">
+                <span>{item.name} x{item.quantity}</span>
+                <span>{`₱${item.price * item.quantity}`}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-600" htmlFor="addressLine1">Address Line 1</label>
           <input
@@ -154,12 +192,28 @@ const CheckoutPage = () => {
           />
         </div>
 
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold">Order Summary</h2>
+          <div className="flex items-center justify-between mt-2">
+            <span>Subtotal</span>
+            <span>{`₱${cartItems.reduce((total, item) => total + item.price * item.quantity, 0)}`}</span>
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <span>Shipping</span>
+            <span>{shippingCost ? `₱${shippingCost}` : "Calculating..."}</span>
+          </div>
+          <div className="flex items-center justify-between mt-4 text-lg font-bold">
+            <span>Total</span>
+            <span>{`₱${calculateTotalPrice()}`}</span>
+          </div>
+        </div>
+
         <button
           onClick={handleCheckout}
           disabled={isSubmitting}
-          className={`px-4 py-2 text-white transition-colors rounded bg-blue-950 hover:bg-blue-900 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`w-full py-2 mt-4 text-white ${isSubmitting ? 'bg-gray-500' : 'bg-blue-600'} rounded`}
         >
-          {isSubmitting ? "Processing..." : "Place Order"}
+          {isSubmitting ? "Processing..." : "Proceed to Payment"}
         </button>
       </div>
     </section>

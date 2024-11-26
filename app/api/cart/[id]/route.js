@@ -2,7 +2,6 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-// Helper: Verify token and get user ID
 const verifyToken = (req) => {
   const token = req.headers.get("Authorization")?.split(" ")[1];
   console.log(token);
@@ -19,18 +18,16 @@ const verifyToken = (req) => {
   }
 };
 
-// PATCH: Update item quantity in the cart
 export async function PATCH(req, { params }) {
   try {
     const userId = verifyToken(req);
-    const { id } = params; // Get the item ID from the URL parameter
+    const { id } = await params; 
     const { quantity } = await req.json();
 
     if (!quantity || quantity < 1) {
       return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
     }
 
-    // Check if the item exists in the user's cart
     const cartItem = await prisma.cartItem.findUnique({
       where: { id },
       include: { cart: true },
@@ -40,7 +37,6 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Cart item not found or unauthorized" }, { status: 404 });
     }
 
-    // Update the item quantity
     const updatedCartItem = await prisma.cartItem.update({
       where: { id },
       data: { quantity },
@@ -56,13 +52,11 @@ export async function PATCH(req, { params }) {
   }
 }
 
-// DELETE: Remove item from the cart
 export async function DELETE(req, { params }) {
   try {
     const userId = verifyToken(req);
-    const { id } = params; // Get the item ID from the URL parameter
+    const { id } = await params; 
 
-    // Check if the item exists in the user's cart
     const cartItem = await prisma.cartItem.findUnique({
       where: { id },
       include: { cart: true },
@@ -72,7 +66,6 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Cart item not found or unauthorized" }, { status: 404 });
     }
 
-    // Remove the item from the cart
     await prisma.cartItem.delete({
       where: { id },
     });

@@ -79,7 +79,7 @@ const CartDropdown = () => {
                       <p className="font-semibold">{item.name}</p>
                       <p className="text-sm text-gray-600">x{item.quantity}</p>
                     </div>
-                    <p className="text-gray-800">${item.price * item.quantity}</p>
+                    <p className="text-gray-800">&#8369;{item.price * item.quantity}</p>
                   </li>
                 ))}
               </ul>

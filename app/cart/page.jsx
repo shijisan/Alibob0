@@ -62,16 +62,82 @@ const CartPage = () => {
 
    const handleProceedToCheckout = () => {
       if (selectedItems.length > 0) {
-         const selectedCartItems = cartItems.filter((item) => selectedItems.includes(item.id));
-
-         // Save to session storage
-         sessionStorage.setItem("checkoutItems", JSON.stringify(selectedCartItems));
-
-         router.push("/checkout");
+         const itemDetails = cartItems
+            .filter((item) => selectedItems.includes(item.id))
+            .map((item) => ({
+               id: item.id,
+               productId: item.productId, 
+               name: item.name,
+               price: item.price,
+               quantity: item.quantity
+            }));
+   
+         console.log("Selected item details:", itemDetails);
+   
+         const queryParams = `?items=${encodeURIComponent(JSON.stringify(itemDetails))}`;
+         router.push(`/checkout${queryParams}`);
       } else {
          alert("Please select at least one item to purchase.");
       }
    };
+   
+
+   const handleUpdateQuantity = async (itemId, newQuantity) => {
+      if (newQuantity < 1) {
+         alert("Quantity must be at least 1.");
+         return;
+      }
+
+      const token = localStorage.getItem("token");
+
+      try {
+         const response = await fetch(`/api/cart/${itemId}`, {
+            method: "PATCH",
+            headers: {
+               "Content-Type": "application/json",
+               Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ quantity: newQuantity }),
+         });
+
+         if (response.ok) {
+            const updatedItem = await response.json();
+            setCartItems((prevItems) =>
+               prevItems.map((item) =>
+                  item.id === itemId ? { ...item, quantity: updatedItem.cartItem.quantity } : item
+               )
+            );
+         } else {
+            console.error("Failed to update item quantity.");
+         }
+      } catch (error) {
+         console.error("Error updating quantity:", error);
+      }
+   };
+
+   const handleDeleteItem = async (itemId) => {
+      const token = localStorage.getItem("token");
+
+      try {
+         const response = await fetch(`/api/cart/${itemId}`, {
+            method: "DELETE",
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         });
+
+         if (response.ok) {
+            setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+         } else {
+            console.error("Failed to delete item from cart.");
+         }
+      } catch (error) {
+         console.error("Error deleting item:", error);
+      }
+   };
+
+
+
 
    if (!isAuthorized) return null;
 
@@ -104,13 +170,34 @@ const CartPage = () => {
                                  <p className="text-sm text-gray-600">x{item.quantity}</p>
                               </a>
                            </div>
-                           <p className="text-gray-800">${item.price * item.quantity}</p>
+
+                           <div className="flex items-center justify-center">
+                              <p className="text-gray-800 me-4">&#8369;{item.price * item.quantity}</p>
+                              <button
+                                 onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                 className="px-2 py-1 mr-2 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                              >
+                                 +
+                              </button>
+                              <button
+                                 onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                 className="px-2 py-1 mr-2 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                              >
+                                 -
+                              </button>
+                              <button
+                                 onClick={() => handleDeleteItem(item.id)}
+                                 className="px-2 py-1 text-sm text-white bg-gray-500 rounded hover:bg-gray-600"
+                              >
+                                 Delete
+                              </button>
+                           </div>
                         </li>
                      ))}
                   </ul>
                   <div className="flex items-center justify-between mb-4">
                      <h2 className="text-xl font-semibold">Total:</h2>
-                     <p className="text-xl font-bold text-gray-800">${calculateTotal()}</p>
+                     <p className="text-xl font-bold text-gray-800">&#8369;{calculateTotal()}</p>
                   </div>
                   <button
                      onClick={handleProceedToCheckout}

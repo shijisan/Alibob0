@@ -7,37 +7,49 @@ export default function HomePage() {
 	const [products, setProducts] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [error, setError] = useState("");
+	const [page, setPage] = useState(1); 
+
+	const fetchProducts = async (page = 1) => {
+		try {
+			 const res = await fetch(`/api/products?page=${page}`);
+			 if (!res.ok) {
+				  throw new Error("Failed to fetch products");
+			 }
+			 const data = await res.json();
+  
+			 setProducts((prevProducts) => {
+				  const existingProductIds = new Set(prevProducts.map((p) => p.id));
+				  const newProducts = data.filter((product) => !existingProductIds.has(product.id));
+				  return [...prevProducts, ...newProducts];
+			 });
+		} catch (err) {
+			 setError(err.message);
+		}
+  };
+  
+	const fetchCategories = async () => {
+		try {
+			const res = await fetch("/api/categories");
+			if (!res.ok) {
+				throw new Error("Failed to fetch categories");
+			}
+			const data = await res.json();
+			setCategories(data.categories);
+		} catch (err) {
+			setError(err.message);
+		}
+	};
 
 	useEffect(() => {
-		const fetchProducts = async () => {
-			try {
-				const res = await fetch("/api/products");
-				if (!res.ok) {
-					throw new Error("Failed to fetch products");
-				}
-				const data = await res.json();
-				setProducts(data);
-			} catch (err) {
-				setError(err.message);
-			}
-		};
-
-		const fetchCategories = async () => {
-			try {
-				const res = await fetch("/api/categories");
-				if (!res.ok) {
-					throw new Error("Failed to fetch categories");
-				}
-				const data = await res.json();
-				setCategories(data.categories);
-			} catch (err) {
-				setError(err.message);
-			}
-		};
-
-		fetchProducts();
+		fetchProducts(); // Fetch initial products
 		fetchCategories();
 	}, []);
+
+	const handleLoadMore = () => {
+		const nextPage = page + 1;
+		setPage(nextPage); // Increment page
+		fetchProducts(nextPage); // Fetch products for the next page
+	};
 
 	return (
 		<>
@@ -63,7 +75,7 @@ export default function HomePage() {
 							{categories.length > 0 ? (
 								categories.map((category) => (
 									<a
-										key={category.id} // Key applied here
+										key={category.id}
 										href={`/search?category=${category.name}`}
 										className="font-semibold text-center"
 									>
@@ -76,15 +88,18 @@ export default function HomePage() {
 								<p>No categories found</p>
 							)}
 						</div>
-
 					</div>
 					<div className="z-10 w-full h-full p-5 bg-white rounded shadow lg:w-4/6 md:w-1/2">
 						<div className="flex items-center justify-between pb-4 border-b">
 							<h3>Promotions</h3>
 						</div>
 						<div className="grid items-center grid-cols-2 gap-4 mt-4 lg:grid-cols-4 md:grid-cols-3">
-							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">Feature 1</div>
-							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">Feature 2</div>
+							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">
+								Feature 1
+							</div>
+							<div className="py-2 font-medium text-center bg-gray-100 rounded shadow hover:shadow-md">
+								Feature 2
+							</div>
 						</div>
 					</div>
 				</section>
@@ -95,28 +110,38 @@ export default function HomePage() {
 					{error ? (
 						<p className="text-red-500">{error}</p>
 					) : products.length > 0 ? (
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
-							{products.map((product) => (
-								<a
-									href={`/product/${product.id}`}
-									key={product.id}
-									className="block"
+						<>
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+								{products.map((product) => (
+									<a
+										href={`/product/${product.id}`}
+										key={product.id}
+										className="block"
+									>
+										<div className="p-4 bg-gray-100 rounded shadow hover:shadow-md">
+											<img
+												src={product.imageUrl}
+												alt={product.name}
+												className="object-cover w-full mb-2 bg-white border rounded h-60 aspect-square"
+											/>
+											<h4 className="h-8 text-lg font-semibold truncate">{product.name}</h4>
+											<p className="h-6 mb-1 text-sm text-gray-500 truncate">
+												{product.description}
+											</p>
+											<p className="font-bold text-blue-700">&#8369;{product.price}</p>
+										</div>
+									</a>
+								))}
+							</div>
+							<div className="flex justify-center w-full my-4 item-center">
+								<button
+									onClick={handleLoadMore} // Call the handler
+									className="p-2 transition-colors bg-pink-300 rounded hover:bg-pink-400"
 								>
-									<div className="p-4 bg-gray-100 rounded shadow hover:shadow-md">
-										<img
-											src={product.imageUrl}
-											alt={product.name}
-											className="object-cover w-full mb-2 bg-white border rounded h-60 aspect-square"
-										/>
-										<h4 className="h-8 text-lg font-semibold truncate">{product.name}</h4>
-										<p className="h-6 mb-1 text-sm text-gray-500 truncate">
-											{product.description}
-										</p>
-										<p className="font-bold text-blue-700">${product.price}</p>
-									</div>
-								</a>
-							))}
-						</div>
+									Load More Products
+								</button>
+							</div>
+						</>
 					) : (
 						<p className="text-gray-500">No products found</p>
 					)}

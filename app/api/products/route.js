@@ -1,19 +1,26 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1", 10); 
+
+    const pageSize = 12; 
+    const skip = (page - 1) * pageSize;
+
     const products = await prisma.product.findMany({
-      take: 10,
+      skip, 
+      take: pageSize, 
       orderBy: {
         createdAt: "desc", 
       },
-      select: { // Specify the fields to fetch
+      select: { 
         id: true,
         name: true,
         description: true,
         price: true,
-        imageUrl: true, // Include the image URL
+        imageUrl: true, 
       },
     });
 

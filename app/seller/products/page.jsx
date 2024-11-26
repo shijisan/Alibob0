@@ -307,7 +307,7 @@ export default function ProductsPage() {
                 </td>
                 <td>{product.name}</td>
                 <td>{product.description}</td>
-                <td>${product.price}</td>
+                <td>&#8369;{product.price}</td>
                 <td>{product.category?.name}</td>
                 <td>
                   <button

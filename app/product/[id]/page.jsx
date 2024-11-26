@@ -7,25 +7,47 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState(null);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [cartItem, setCartItem] = useState(null);
   const [shopInfo, setShopInfo] = useState(null);
   const router = useRouter();
-  const params = useParams(); // Access dynamic route parameters
+  const params = useParams();
 
   const handleChange = (e) => {
     const value = parseInt(e.target.value, 10);
-    if (!isNaN(value) && value > 0) {
-      setQuantity(value);
+    setQuantity(value > 0 ? value : 1); // Fallback to 1 if invalid input
+  };
+
+  const addQuantity = () => setQuantity((prev) => prev + 1);
+  const subtractQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+  const handleBuyNow = async () => {
+    if (!product) return;
+  
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+  
+    try {
+      const itemDetails = [
+        {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity,
+        },
+      ];
+  
+      // Log the details for debugging
+      console.log("Selected item details for Buy Now:", itemDetails);
+  
+      const queryParams = `?items=${encodeURIComponent(JSON.stringify(itemDetails))}`;
+      router.push(`/checkout${queryParams}`);
+    } catch (err) {
+      alert(`Error: ${err.message}`);
     }
   };
-
-  const addQuantity = () => {
-    setQuantity((prevQuantity) => prevQuantity + 1);
-  };
-
-  const subtractQuantity = () => {
-    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
-  };
+  
 
   const addToCart = async () => {
     if (!product) return;
@@ -37,20 +59,18 @@ export default function ProductDetailsPage() {
     }
 
     try {
-      // Fetch the cart to check if the product is already in the cart
       const res = await fetch("/api/cart", {
         headers: {
-          Authorization: `Bearer ${token}`, // Include token in headers
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      const { cartItems } = await res.json();
+      if (!res.ok) throw new Error("Failed to fetch cart items");
 
-      // Find the existing cart item
-      const existingItem = cartItems.find((item) => item.productId === product.id);
+      const { cartItems } = await res.json();
+      const existingItem = cartItems?.find((item) => item.productId === product.id);
 
       if (existingItem) {
-        // If the product is already in the cart, update its quantity
         const updateRes = await fetch(`/api/cart/${existingItem.id}`, {
           method: "PATCH",
           headers: {
@@ -62,13 +82,10 @@ export default function ProductDetailsPage() {
           }),
         });
 
-        if (!updateRes.ok) {
-          throw new Error("Failed to update cart item");
-        }
+        if (!updateRes.ok) throw new Error("Failed to update cart item");
 
         alert("Cart updated with new quantity!");
       } else {
-        // If the product is not in the cart, create a new cart item
         const addRes = await fetch("/api/cart", {
           method: "POST",
           headers: {
@@ -81,9 +98,7 @@ export default function ProductDetailsPage() {
           }),
         });
 
-        if (!addRes.ok) {
-          throw new Error("Failed to add to cart");
-        }
+        if (!addRes.ok) throw new Error("Failed to add to cart");
 
         alert("Item added to cart!");
       }
@@ -95,30 +110,23 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const { id } = params;
+        const { id } = params || {};
         if (!id) throw new Error("Product ID is missing");
 
-        // Fetch product details
-        const res = await fetch(`/api/product/${id}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch product");
-        }
+        const productRes = await fetch(`/api/product/${id}`);
+        if (!productRes.ok) throw new Error("Failed to fetch product");
 
-        const data = await res.json();
+        const productData = await productRes.json();
 
-        // Fetch the seller's shop details (assumes `data.seller.id` exists)
-        const shopRes = await fetch(`/api/shop/${data.seller.id}`);
-        if (!shopRes.ok) {
-          throw new Error("Failed to fetch seller details");
-        }
+        const shopRes = await fetch(`/api/shop/${productData.seller.id}`);
+        if (!shopRes.ok) throw new Error("Failed to fetch seller details");
 
         const shopData = await shopRes.json();
 
-        // Set the fetched data
-        setProduct(data);
+        setProduct(productData);
         setShopInfo(shopData);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "An unknown error occurred");
       }
     };
 
@@ -156,7 +164,7 @@ export default function ProductDetailsPage() {
               <img
                 src={product.imageUrl}
                 alt={product.name}
-                className="lg:h-[300px] aspect-square"
+                className="lg:h-[300px] aspect-square object-cover"
               />
             </div>
           </div>
@@ -167,7 +175,7 @@ export default function ProductDetailsPage() {
                 Price: <span className="font-normal">&#8369;</span>
                 {product.price.toFixed(2)}
               </p>
-              <p className="text-lg">{product.description}</p>
+              <p className="text-base">{product.description}</p>
 
               <div className="flex">
                 <button
@@ -194,7 +202,7 @@ export default function ProductDetailsPage() {
               >
                 Add to Cart
               </button>
-              <button className="w-1/2 p-2 transition-colors bg-pink-200 rounded hover:bg-pink-300 text-blue-950">
+              <button className="w-1/2 p-2 transition-colors bg-pink-200 rounded hover:bg-pink-300 text-blue-950" onClick={handleBuyNow}>
                 Buy Now
               </button>
             </div>
@@ -206,19 +214,19 @@ export default function ProductDetailsPage() {
           <div className="flex items-center justify-center me-4">
             <img
               className="rounded-full me-2"
-              src="https://placehold.co/50/webp"
+              src={shopInfo.seller?.image || "https://placehold.co/50/webp"}
               alt="shop image"
             />
-            <p className="me-4">{shopInfo.seller.shopName}</p>
+            <p className="me-4">{shopInfo.seller?.shopName || "Shop Name"}</p>
             <a
               className="p-2 font-medium bg-pink-300 rounded hover:bg-pink-400"
-              href={`/shop/${shopInfo.seller.id}`}
+              href={`/shop/${shopInfo.seller?.id}`}
             >
               Visit Shop
             </a>
           </div>
           <div className="flex flex-col mt-4 space-y-4 lg:px-4 lg:mt-0 lg:space-x-4 lg:space-y-0 lg:items-center lg:flex-row border-s">
-            <p className="">Products: {shopInfo.productCount}</p>
+            <p className="">Products: {shopInfo.productCount || "N/A"}</p>
             <p className="">Ratings: {shopInfo.rating || "Undefined"}</p>
           </div>
         </div>

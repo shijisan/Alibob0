@@ -2,7 +2,6 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-// Helper: Verify token and get user ID
 const verifyToken = (req) => {
   const token = req.headers.get("Authorization")?.split(" ")[1];
   if (!token) {
@@ -17,7 +16,6 @@ const verifyToken = (req) => {
   }
 };
 
-// GET: Fetch cart items
 export async function GET(req) {
   try {
     const userId = verifyToken(req);
@@ -46,7 +44,6 @@ export async function GET(req) {
   }
 }
 
-// POST: Add item to cart
 export async function POST(req) {
   try {
     const userId = verifyToken(req);
@@ -57,7 +54,6 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    // Check if the cart exists for the user; if not, create one
     let cart = await prisma.cart.findUnique({ where: { userId } });
 
     if (!cart) {
@@ -66,19 +62,16 @@ export async function POST(req) {
       });
     }
 
-    // Check if the item is already in the cart
     const existingItem = await prisma.cartItem.findUnique({
       where: { cartId_productId: { cartId: cart.id, productId } },
     });
 
     if (existingItem) {
-      // Update quantity if the item exists
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + quantity },
       });
     } else {
-      // Add new item to the cart
       await prisma.cartItem.create({
         data: { cartId: cart.id, productId, quantity },
       });
