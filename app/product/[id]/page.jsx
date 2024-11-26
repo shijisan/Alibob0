@@ -201,7 +201,7 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </section>
-      <section className="flex items-center justify-center h-[10vh] p-10 w-full">
+      <section className="flex items-center justify-center min-h-[10vh] p-10 w-full">
         <div className="flex flex-col w-full p-5 px-4 border rounded-lg shadow lg:flex-row text-blue-950 border-e">
           <div className="flex items-center justify-center me-4">
             <img
