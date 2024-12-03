@@ -8,11 +8,11 @@ const AdminCategoriesPage = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [categories, setCategories] = useState([]);
-  const [editingCategory, setEditingCategory] = useState(null); // Tracks the category being edited
-  const [editName, setEditName] = useState(""); // Tracks the new name for the category being edited
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
-  // Redirect to /admin/login if adminToken does not exist
   useEffect(() => {
     const adminToken = localStorage.getItem("adminToken");
     if (!adminToken) {
@@ -20,7 +20,6 @@ const AdminCategoriesPage = () => {
     }
   }, [router]);
 
-  // Fetch categories on initial render
   useEffect(() => {
     const fetchCategories = async () => {
       const res = await fetch("/api/admin/categories", {
@@ -40,7 +39,6 @@ const AdminCategoriesPage = () => {
     fetchCategories();
   }, []);
 
-  // Handle creating a new category
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -62,13 +60,13 @@ const AdminCategoriesPage = () => {
     if (res.ok) {
       setMessage("Category created successfully.");
       setCategoryName("");
-      setCategories((prevCategories) => [...prevCategories, data]); // Add the new category to the list
+      setCategories((prevCategories) => [...prevCategories, data]);
+      setIsModalOpen(false); // Close the modal
     } else {
       setError(data.error || "Failed to create category.");
     }
   };
 
-  // Handle updating a category
   const handleUpdate = async (id) => {
     if (!editName) {
       setError("New category name is required.");
@@ -99,7 +97,6 @@ const AdminCategoriesPage = () => {
     }
   };
 
-  // Handle deleting a category
   const handleDelete = async (id) => {
     const res = await fetch(`/api/admin/categories/${id}`, {
       method: "DELETE",
@@ -121,53 +118,118 @@ const AdminCategoriesPage = () => {
 
   return (
     <section className="flex flex-col items-center justify-center min-h-screen">
-      <h1>Create Category</h1>
+      <h1>Admin Categories</h1>
 
-      {/* Form for creating a new category */}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Category Name</label>
-          <input
-            type="text"
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            className="border"
-          />
-        </div>
-        <button type="submit">Create Category</button>
-      </form>
+      <button
+        className="px-4 py-2 mt-4 text-white bg-blue-500 rounded"
+        onClick={() => setIsModalOpen(true)}
+      >
+        Create Category
+      </button>
 
-      {/* Display error or success message */}
       {error && <p style={{ color: "red" }}>{error}</p>}
       {message && <p style={{ color: "green" }}>{message}</p>}
 
-      {/* List of existing categories */}
       <h2>Existing Categories</h2>
-      <ul>
-        {categories.map((category) => (
-          <li key={category.id} className="my-4">
-            {editingCategory === category.id ? (
-              <>
+      <table className="mt-4 border border-collapse border-gray-400 table-auto">
+        <thead>
+          <tr>
+            <th className="px-4 py-2 border border-gray-400">ID</th>
+            <th className="px-4 py-2 border border-gray-400">Name</th>
+            <th className="px-4 py-2 border border-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category) => (
+            <tr key={category.id}>
+              <td className="px-4 py-2 border border-gray-400">{category.id}</td>
+              <td className="px-4 py-2 border border-gray-400">
+                {editingCategory === category.id ? (
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="New Category Name"
+                    className="border"
+                  />
+                ) : (
+                  category.name
+                )}
+              </td>
+              <td className="px-4 py-2 border border-gray-400">
+                {editingCategory === category.id ? (
+                  <>
+                    <button
+                      className="mr-2 text-green-600"
+                      onClick={() => handleUpdate(category.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="text-red-600"
+                      onClick={() => setEditingCategory(null)}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="mr-2 text-blue-600"
+                      onClick={() => {
+                        setEditingCategory(category.id);
+                        setEditName(category.name);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-red-600"
+                      onClick={() => handleDelete(category.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="p-6 bg-white rounded shadow-lg w-96">
+            <h2>Create Category</h2>
+            <form onSubmit={handleSubmit}>
+              <div>
+                <label>Category Name</label>
                 <input
                   type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="New Category Name"
-                  className="border"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  className="w-full p-2 mt-2 border"
                 />
-                <button onClick={() => handleUpdate(category.id)}>Save</button>
-                <button onClick={() => setEditingCategory(null)}>Cancel</button>
-              </>
-            ) : (
-              <>
-                <span>{category.name}</span>
-                <button onClick={() => setEditingCategory(category.id)}>Edit</button>
-                <button onClick={() => handleDelete(category.id)}>Delete</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  type="button"
+                  className="px-4 py-2 mr-2 text-white bg-gray-400 rounded"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-white bg-blue-500 rounded"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 export default function VerifySellerPage() {
    const [isLoading, setIsLoading] = useState(true);
-   const [sellers, setSellers] = useState([]);  // State to store sellers as an array
+   const [sellers, setSellers] = useState([]); 
    const [adminToken, setAdminToken] = useState(null);
    const router = useRouter();
 
@@ -13,25 +13,23 @@ export default function VerifySellerPage() {
       if (!token) {
          router.push("/admin/login");
       } else {
-         setAdminToken(token); // Store token in state once it's available
-         setIsLoading(false);  // Set loading to false once we get the token
+         setAdminToken(token); 
+         setIsLoading(false); 
       }
    }, [router]);
 
-   // Fetch unverified sellers
    const fetchSellers = async () => {
       try {
          const response = await fetch("/api/admin/verify-seller", {
             method: "GET",
             headers: {
-               "Authorization": `Bearer ${adminToken}`,
+               Authorization: `Bearer ${adminToken}`,
             },
          });
          const data = await response.json();
-         
-         // Ensure the response has the 'sellers' key
+
          if (data.sellers && Array.isArray(data.sellers)) {
-            setSellers(data.sellers); // Update sellers state with fetched data
+            setSellers(data.sellers); 
          } else {
             console.error("Unexpected data format", data);
          }
@@ -42,24 +40,23 @@ export default function VerifySellerPage() {
 
    useEffect(() => {
       if (!isLoading && adminToken) {
-         fetchSellers(); // Fetch sellers once adminToken is available
+         fetchSellers(); 
       }
    }, [isLoading, adminToken]);
 
-   // Handle verify action for a seller
    const handleVerify = async (sellerId) => {
       try {
          const response = await fetch(`/api/admin/verify-seller/${sellerId}`, {
-            method: "PATCH",  // Use PATCH method for verification
+            method: "PATCH", 
             headers: {
-               "Authorization": `Bearer ${adminToken}`,
+               Authorization: `Bearer ${adminToken}`,
                "Content-Type": "application/json",
             },
          });
 
          if (response.ok) {
             const updatedSellers = sellers.filter((seller) => seller.id !== sellerId);
-            setSellers(updatedSellers); // Remove the verified seller from the list
+            setSellers(updatedSellers); 
          } else {
             console.error("Failed to verify seller");
          }
@@ -73,21 +70,34 @@ export default function VerifySellerPage() {
          {isLoading ? (
             <p>Loading...</p>
          ) : (
-            <section className="flex items-center justify-center min-h-screen">
-               <h1>Verify Sellers</h1>
+            <section className="flex flex-col items-center justify-center min-h-screen">
+               <h1 className="mb-4 text-xl font-bold">Verify Sellers</h1>
                {sellers.length === 0 ? (
                   <p>No unverified sellers.</p>
                ) : (
-                  <ul>
-                     {sellers.map((seller) => (
-                        <li key={seller.id}>
-                           <span>{seller.shopName}</span>
-                           <button onClick={() => handleVerify(seller.id)}>
-                              Verify
-                           </button>
-                        </li>
-                     ))}
-                  </ul>
+                  <table className="border border-collapse border-gray-300 table-auto">
+                     <thead>
+                        <tr>
+                           <th className="px-4 py-2 border border-gray-300">Shop Name</th>
+                           <th className="px-4 py-2 border border-gray-300">Action</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {sellers.map((seller) => (
+                           <tr key={seller.id}>
+                              <td className="px-4 py-2 border border-gray-300">{seller.shopName}</td>
+                              <td className="px-4 py-2 border border-gray-300">
+                                 <button
+                                    onClick={() => handleVerify(seller.id)}
+                                    className="px-4 py-1 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+                                 >
+                                    Verify
+                                 </button>
+                              </td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
                )}
             </section>
          )}

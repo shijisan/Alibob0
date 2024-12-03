@@ -41,14 +41,14 @@ export default function HomePage() {
 	};
 
 	useEffect(() => {
-		fetchProducts(); // Fetch initial products
+		fetchProducts(); 
 		fetchCategories();
 	}, []);
 
 	const handleLoadMore = () => {
 		const nextPage = page + 1;
-		setPage(nextPage); // Increment page
-		fetchProducts(nextPage); // Fetch products for the next page
+		setPage(nextPage); 
+		fetchProducts(nextPage);
 	};
 
 	return (
@@ -70,7 +70,6 @@ export default function HomePage() {
 							</a>
 						</div>
 
-						{/* Display categories */}
 						<div className="grid items-center h-full grid-cols-1 gap-4 mt-4 lg:gap-2 lg:grid-cols-4 md:grid-cols-2">
 							{categories.length > 0 ? (
 								categories.map((category) => (
@@ -79,7 +78,7 @@ export default function HomePage() {
 										href={`/search?category=${category.name}`}
 										className="font-semibold text-center"
 									>
-										<div className="py-2 bg-gray-100 rounded shadow hover:shadow-md">
+										<div className="py-2 truncate bg-gray-100 rounded shadow hover:shadow-md">
 											{category.name}
 										</div>
 									</a>
@@ -135,7 +134,7 @@ export default function HomePage() {
 							</div>
 							<div className="flex justify-center w-full my-4 item-center">
 								<button
-									onClick={handleLoadMore} // Call the handler
+									onClick={handleLoadMore} 
 									className="p-2 transition-colors bg-pink-300 rounded hover:bg-pink-400"
 								>
 									Load More Products

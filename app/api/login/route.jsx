@@ -29,7 +29,6 @@ export async function POST(req) {
          );
       }
 
-      // Include userId in the token payload
       const token = jwt.sign(
          { id: user.id, email: user.email, role: user.role, userId: user.id }, // Added userId here
          process.env.JWT_SECRET,
