@@ -147,6 +147,7 @@ export default function ProductsPage() {
       setEditProductId(null);
       setIsModalOpen(false);
       fetchProducts();
+      router.reload();
     } catch (error) {
       setError(error.message);
     }

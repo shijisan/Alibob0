@@ -103,7 +103,7 @@ export default function HomePage() {
 					</div>
 				</section>
 
-				<section className="min-h-screen p-5 mt-4 bg-white rounded shadow">
+				<section className="p-5 mt-4 bg-white rounded shadow">
 					<h3 className="mb-4 text-xl font-bold">Suggested Products:</h3>
 
 					{error ? (
