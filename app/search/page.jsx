@@ -141,7 +141,7 @@ export default function SearchPage() {
 									width={250}
 								/>
 								<h2 className="mb-2 text-lg font-semibold">{product.name}</h2>
-								<p className="mb-2 text-sm text-gray-600">{product.description}</p>
+								<p className="mb-2 text-sm text-gray-600 truncate">{product.description}</p>
 								<p className="font-bold text-blue-600">
 									${product.price.toFixed(2)}
 								</p>
