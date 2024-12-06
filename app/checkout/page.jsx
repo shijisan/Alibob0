@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -12,6 +13,7 @@ const CheckoutPage = () => {
     addressLine2: "",
   });
   const [provinces, setProvinces] = useState([
+    // List of provinces
     "Abra", "Agusan del Norte", "Agusan del Sur", "Aklan", "Albay", "Antique", "Apayao", "Aurora",
     "Basilan", "Bataan", "Batanes", "Batangas", "Benguet", "Biliran", "Bohol", "Bukidnon", "Bulacan",
     "Cagayan", "Camarines Norte", "Camarines Sur", "Camiguin", "Capiz", "Catanduanes", "Cavite",
@@ -29,6 +31,7 @@ const CheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [shippingCost, setShippingCost] = useState(undefined);
+  const [showModal, setShowModal] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,9 +46,6 @@ const CheckoutPage = () => {
 
         if (Array.isArray(parsedItems)) {
           setCartItems(parsedItems);
-
-          router.replace("/checkout");
-
         } else {
           throw new Error("Invalid items format");
         }
@@ -68,15 +68,15 @@ const CheckoutPage = () => {
 
   const handleCheckout = async () => {
     const { province, city, postalCode, addressLine1, addressLine2, country } = address;
-  
+
     if (!province || !city || !postalCode || !addressLine1 || !country) {
       setError("Please fill out all required fields.");
       return;
     }
-  
+
     setIsSubmitting(true);
     setError(null);
-  
+
     try {
       const response = await fetch("/api/checkout", {
         method: "POST",
@@ -94,12 +94,10 @@ const CheckoutPage = () => {
           country,
         }),
       });
-  
+
       if (response.ok) {
-        alert("Order placed successfully!");
-        router.push("/order-success");
+        setShowModal(true);
       } else {
-        alert("Failed to place the order.");
         const resData = await response.json();
         setError(resData.message || "Failed to place the order.");
       }
@@ -211,10 +209,27 @@ const CheckoutPage = () => {
         <button
           onClick={handleCheckout}
           disabled={isSubmitting}
-          className={`w-full py-2 mt-4 text-white ${isSubmitting ? 'bg-gray-500' : 'bg-blue-600'} rounded`}
+          className={`w-full py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-600 ${
+            isSubmitting && "opacity-50 cursor-not-allowed"
+          }`}
         >
-          {isSubmitting ? "Processing..." : "Proceed to Payment"}
+          {isSubmitting ? "Placing order..." : "Place Order"}
         </button>
+
+        {showModal && (
+          <div className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="p-6 bg-white rounded shadow-lg">
+              <h3 className="mb-4 text-lg font-bold">Order Placed!</h3>
+              <p className="mb-4">Thank you for your order. Your order has been successfully placed.</p>
+              <button
+                onClick={() => router.push("/cart")}
+                className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+              >
+                Back to Cart
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

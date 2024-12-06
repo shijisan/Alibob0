@@ -21,10 +21,10 @@ export default function LogoutButton() {
 
   return (
     <button
-      className="px-4 py-2 text-white bg-red-500 border rounded-md"
+      className="px-4 py-2 font-medium text-blue-500 hover:text-blue-400"
       onClick={handleLogout}
     >
-      LOGOUT
+      Log Out
     </button>
   );
 }

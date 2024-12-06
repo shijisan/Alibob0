@@ -2,6 +2,7 @@ import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import AdminNavBar from "@/components/AdminNavBar";
 import TokenChecker from "@/components/TokenChecker";
+import "../globals.css"
 
 const poppins = Poppins({
   subsets: ["latin"],

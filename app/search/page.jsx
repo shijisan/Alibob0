@@ -136,7 +136,7 @@ export default function SearchPage() {
 								<img
 									src={product.imageUrl}
 									alt={product.name}
-									className="object-cover mb-2 bg-white border rounded aspect-square"
+									className="object-cover mb-2 bg-white rounded aspect-square"
 									height={250}
 									width={250}
 								/>
