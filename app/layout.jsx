@@ -1,5 +1,5 @@
 import { Poppins } from "next/font/google";
-import { Suspense } from "react"; // Import Suspense
+import { Suspense } from "react"; 
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import TokenChecker from "@/components/TokenChecker";

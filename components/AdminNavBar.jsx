@@ -34,18 +34,20 @@ export default function AdminNavBar() {
                <ul className="w-full text-center bg-pink-300 md:bg-transparent">
                   <li><a href="/account" className="block py-2">Switch</a></li>
                   <li><a href="/admin/dashboard" className="block py-2">Dashboard</a></li>
-                  <li><a href="/admin/manage-sellers" className="block py-2">Sellers</a></li>
+                  <li><a href="/admin/verify-seller" className="block py-2">Sellers</a></li>
                   <li><a href="/admin/categories" className="block py-2">Categories</a></li>
                   <li><a href="/admin/admins" className="block py-2">Manage Admins</a></li>
+                  <li><a href="/admin/manage-banner" className="block py-2">Banner</a></li>
                </ul>
             </div>
 
             <ul className="items-center hidden w-1/2 md:inline-flex justify-evenly">
                <li><a href="/account">Switch</a></li>
                <li><a href="/admin/dashboard">Dashboard</a></li>
-               <li><a href="/admin/manage-sellers">Sellers</a></li>
+               <li><a href="/admin/verify-seller">Sellers</a></li>
                <li><a href="/admin/categories">Categories</a></li>
                <li><a href="/admin/admins">Manage Admins</a></li>
+               <li><a href="/admin/manage-banner">Banner</a></li>
             </ul>
          </nav>
       </>

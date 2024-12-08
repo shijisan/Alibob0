@@ -42,6 +42,7 @@ model Seller {
   updatedAt       DateTime  @updatedAt
   products        Product[] @relation("SellerToProducts")
   isDeleted       Boolean   @default(false)
+  Banner          Banner[]
 }
 
 model Admin {
@@ -65,13 +66,13 @@ model Category {
 }
 
 model Cart {
-  id        String      @id @default(uuid())
-  userId    String      @unique
-  user      User        @relation("UserToCart", fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]  @relation("CartToCartItems")
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  isDeleted Boolean     @default(false)
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation("UserToCart", fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[] @relation("CartToCartItems")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
 }
 
 model CartItem {
@@ -83,6 +84,7 @@ model CartItem {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@unique([cartId, productId])
 }
 
@@ -93,22 +95,22 @@ enum Role {
 }
 
 model Order {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   userId        String
-  user          User        @relation("UserToOrders", fields: [userId], references: [id], onDelete: Cascade)
-  items         OrderItem[] @relation("OrderToOrderItems")
+  user          User          @relation("UserToOrders", fields: [userId], references: [id], onDelete: Cascade)
+  items         OrderItem[]   @relation("OrderToOrderItems")
   addressLine1  String
   addressLine2  String?
   city          String
   province      String
   postalCode    String
   country       String
-  status        OrderStatus @default(coordinating_with_shipping)
+  status        OrderStatus   @default(coordinating_with_shipping)
   paymentStatus PaymentStatus @default(pending)
-  totalAmount   Float       @default(0.0) // Added to store order total
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  isDeleted     Boolean     @default(false)
+  totalAmount   Float         @default(0.0) // Added to store order total
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isDeleted     Boolean       @default(false)
 }
 
 model OrderItem {
@@ -153,4 +155,18 @@ enum PaymentStatus {
   pending
   paid
   failed
+}
+
+model Banner {
+  id             String   @id @default(uuid())
+  title          String   @db.VarChar(255)
+  imageUrl       String   @db.VarChar(255)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  isDeleted      Boolean  @default(false)
+  promotionStart DateTime
+  promotionEnd   DateTime
+  sellerId       String
+  seller         Seller   @relation(fields: [sellerId], references: [id])
 }

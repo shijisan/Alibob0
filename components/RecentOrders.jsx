@@ -53,11 +53,11 @@ const RecentOrders = () => {
             <ol className="px-5 list-decimal list-outside">
                {orders.map((order) => (
                   <li key={order.id} className="mb-4 text-sm">
-                     <div className="flex justify-between font-medium truncate">
-                        <span>Order ID: <span className="font-semibold">{order.id}</span></span>
-                        <span>Status: <span className="font-semibold">{order.status}</span></span>
+                     <div className="flex flex-col justify-between w-full font-medium truncate lg:flex-row">
+                        <div>Order ID: <span className="font-semibold truncate">{order.id}</span></div>
+                        <div>Status: <span className="font-semibold">{order.status}</span></div>
                      </div>
-                     <div className="flex justify-between font-medium">
+                     <div className="flex flex-col justify-between w-full font-medium lg:flex-row">
                         <span>Total Amount: $<span className="font-semibold">{order.totalAmount}</span></span>
                         <a
                            href={`/orders/${order.id}`}

@@ -90,7 +90,6 @@ export default function AccountPage() {
 			}
 		};
 
-		// Fetch data for account info, orders, and products
 		const fetchData = async () => {
 			await Promise.all([fetchAccountInfo(), fetchOrders(), fetchProducts()]);
 			setLoading(false);
@@ -112,11 +111,14 @@ export default function AccountPage() {
 			<div className="flex flex-col justify-center w-full h-full max-w-5xl p-5 bg-white border rounded-lg shadow dashboard-container">
 				{accountInfo && (
 					<>
-						<div className="flex items-center justify-between w-full my-4">
-							<h2 className="text-2xl font-medium ">
+						<div className="grid items-center w-full grid-cols-1 my-4 lg:grid-cols-2">
+							<h2 className="text-2xl font-medium text-center lg:text-start">
 								Hi <span className="underline">{accountInfo.shopName}</span>, this is the Seller Dashboard!
 							</h2>
-							<LogoutButton />
+							<div className="flex items-center justify-center w-full lg:justify-end">
+								<a className="text-center text-blue-500 hover:underline" href="/seller/banner">Promote</a>
+								<LogoutButton />
+							</div>
 						</div>
 						<ul className="flex flex-col w-full h-full gap-2 p-5 mb-4 bg-gray-100">
 							<h2 className="mb-4 text-xl font-medium">Shop Info</h2>

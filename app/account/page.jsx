@@ -62,9 +62,11 @@ export default function AccountPage() {
 			<div className="flex flex-col justify-center w-full h-full max-w-5xl p-5 bg-white border rounded-lg shadow dashboard-container">
 				{accountInfo && (
 					<>
-						<div className="flex items-center justify-between w-full my-4">
-							<h2 className="text-2xl font-medium ">Hi <span className="underline">{accountInfo.name}</span>, this is the Buyer Dashboard!</h2>
-							<LogoutButton />
+						<div className="grid w-full grid-cols-1 my-4 lg:grid-cols-2">
+							<h2 className="self-center text-2xl font-medium text-center lg:self-start lg:text-start">Hi <span className="underline">{accountInfo.name}</span>, this is the Buyer Dashboard!</h2>
+							<div className="flex justify-center w-full lg:justify-end">
+								<LogoutButton />
+							</div>
 						</div>
 						<ul className="flex flex-col w-full h-full gap-2 p-5 mb-4 bg-gray-100">
 							<h2 className="mb-4 text-xl font-medium">Account Info</h2>
