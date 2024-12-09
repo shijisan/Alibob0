@@ -9,7 +9,6 @@ const RecentOrders = () => {
    const [error, setError] = useState("");
    const router = useRouter();
 
-   // Fetch orders when the component mounts
    useEffect(() => {
       const fetchOrders = async () => {
          const token = localStorage.getItem("token");
@@ -60,7 +59,7 @@ const RecentOrders = () => {
                      <div className="flex flex-col justify-between w-full font-medium lg:flex-row">
                         <span>Total Amount: $<span className="font-semibold">{order.totalAmount}</span></span>
                         <a
-                           href={`/orders/${order.id}`}
+                           href="/seller/manage-orders/"
                            className="text-blue-500 underline"
                         >
                            View Order
@@ -71,7 +70,7 @@ const RecentOrders = () => {
             </ol>
          )}
          <button
-            onClick={() => router.push("/orders")}
+            onClick={() => router.push("/seller/manage-orders")}
             className="text-blue-500 underline"
          >
             View All Orders
