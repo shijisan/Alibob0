@@ -8,7 +8,6 @@ import "swiper/css/navigation";
 
 export default function HeroCarousel() {
   const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -21,8 +20,7 @@ export default function HeroCarousel() {
         setBanners(banners);
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
+        setBanners([]);
       }
     };
 
@@ -30,16 +28,14 @@ export default function HeroCarousel() {
   }, []);
 
   const placeholders = [
-    "https://placehold.co/500x500.webp?text=Placeholder+1",
-    "https://placehold.co/500x500.webp?text=Placeholder+2",
-    "https://placehold.co/500x500.webp?text=Placeholder+3",
+    "https://placehold.co/1800x200/webp",
+    "https://placehold.co/1800x200/webp",
+    "https://placehold.co/1800x200/webp",
   ];
 
-  const displayBanners = banners.length > 0 ? banners : placeholders.map((url, index) => ({ imageUrl: url }));
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+  const displayBanners = banners.length > 0 
+    ? banners 
+    : placeholders.map((url) => ({ imageUrl: url }));
 
   return (
     <Swiper
